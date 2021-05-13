@@ -1,0 +1,133 @@
+<?php
+
+$rowInPage = 500;
+$CountRow = tablePBXMemory::count();
+if ($CountRow < 1) return;
+$PageSelect = ($PageSelect < 0 || $PageSelect > $CountRow) ? 1 : (int)$PageSelect;
+
+
+$table = tablePBXMemory::find([
+    'limit' => ':limitrow:',
+    'offset' => ':offsetrow:',
+    'bind' => [
+        'limitrow' => $rowInPage,
+        'offsetrow' => ((int)$rowInPage * ($PageSelect - 1)),
+    ]
+]);
+?>
+
+<div class="container-fluid">
+    <div class="row mt-3 mb-3">
+        <div class="col ">
+            <?php echo $this->getContent(); ?>
+
+            <?php
+            //$this->url->get($this->dispatcher->getControllerName().'/'.$this->dispatcher->getActionName())
+            ?>
+            <div class="dataTables_paginate paging_simple_numbers" id="example1_paginate">
+                <?php
+                $countPage = ceil($CountRow / $rowInPage);
+                if ((int)($countPage) > 1): ?>
+                    <ul class="pagination pagination-sm m-0 ">
+                        <li class="page-item"><a class="page-link"
+                                                 href="javascript:UIPageSelect(<?= 1 ?>);">«</a></li>
+                        <?php if ($countPage > 5): ?>
+                            <?php if ($PageSelect - 3 > 0): ?>
+                                <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1"
+                                                                  aria-disabled="true">...</a></li>
+                            <?php endif; ?>
+                            <?php if ($PageSelect - 2 > 0): ?>
+                                <li class="page-item"><a class="page-link"
+                                                         href="javascript:UIPageSelect(<?= ($PageSelect - 2) ?>);"
+                                    ><?= ($PageSelect - 2) ?></a>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($PageSelect - 1 > 0): ?>
+                                <li class="page-item"><a class="page-link"
+                                                         href="javascript:UIPageSelect(<?= ($PageSelect - 1) ?>);"
+                                    ><?= ($PageSelect - 1) ?></a>
+                                </li>
+                            <?php endif; ?>
+                            <li class="page-item active"><a class="page-link"
+                                                            href="javascript:UIPageSelect(<?= $PageSelect ?>);"
+                                ><?= ($PageSelect) ?></a>
+                            </li>
+                            <?php if ($PageSelect + 1 <= $countPage): ?>
+                                <li class="page-item"><a class="page-link"
+                                                         href="javascript:UIPageSelect(<?= ($PageSelect + 1) ?>);"
+                                    ><?= ($PageSelect + 1) ?></a>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($PageSelect + 2 <= $countPage): ?>
+                                <li class="page-item"><a class="page-link"
+                                                         href="javascript:UIPageSelect(<?= ($PageSelect + 2) ?>);"
+                                    ><?= ($PageSelect + 2) ?></a>
+                                </li>
+                            <?php endif; ?>
+
+                            <?php if ($PageSelect + 3 <= $countPage): ?>
+                                <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1"
+                                                                  aria-disabled="true">...</a></li>
+                            <?php endif; ?>
+
+
+                        <?php else: ?>
+                            <?php for ($p = 1; $p <= $countPage; $p++): ?>
+
+                                <li class="page-item <?= ($PageSelect == $p) ? 'active' : '' ?>"><a class="page-link"
+                                                                                                    href="javascript:UIPageSelect(<?= $p ?>);"><?= $p ?></a>
+                                </li>
+                            <?php endfor; ?>
+                        <?php endif; ?>
+                        <li class="page-item"><a class="page-link" href="javascript:UIPageSelect(<?= ($countPage) ?>);">»</a>
+                        </li>
+                    </ul>
+                <?php endif; ?>
+            </div>
+        </div>
+        <div class="col ">
+            <div class="dataTables_info" role="status" aria-live="polite"> c <?= $rowInPage * ($PageSelect - 1); ?>
+                по <?= min($rowInPage * ($PageSelect - 1) + $rowInPage, $CountRow); ?>
+                из <?= $CountRow ?> записей
+            </div>
+        </div>
+        <div class="col clearfix">
+            <button type="button" class="btn btn-primary  float-right" id="btnImport" onclick="javascript:btnImportClick();">Импортировать</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="table-responsive">
+                <table class="table table-head-fixed text-nowrap">
+                    <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>Дата</th>
+                        <th>Номер Вызываемого Абонента</th>
+                        <th>Направление</th>
+                        <th>Длительность в сек</th>
+                        <th>Тариф</th>
+                        <th>Сумма</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($table as $row): ?>
+
+                        <tr>
+                            <td><?= $row->id; ?></td>
+                            <td><?= date("Y.m.d H:i:s", $row->datetime) ?></td>
+                            <td><?= $row->CalledNumber; ?></td>
+                            <td><?= $row->direction; ?></td>
+                            <td><?= $row->duration; ?></td>
+                            <td><?= $row->tarif; ?></td>
+                            <td><?= $row->cost; ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+

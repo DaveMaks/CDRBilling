@@ -1,0 +1,29 @@
+<?php
+?>
+
+<?php echo $this->getContent(); ?>
+
+
+<table width="100%" class="table table-striped">
+    <tbody>
+    <?php
+    if (!empty($this->view->ListUser)):
+        foreach ($this->view->ListUser as $user):
+            /**
+             * @var $user tableUsersJson
+             */
+            ?>
+            <tr>
+                <td nowrap=""><?= $user->fullName; ?> <span class="badge bg-success"><?= $user->tel; ?></span></td>
+                <!--<td></td>-->
+            </tr>
+            <tr>
+                <td colspan="2" ><?= $this->partial("Report/blockTimeLine",
+                        ["values" => (!empty($user->Json)) ? json_decode($user->Json, true) : null]); ?>
+                </td>
+            </tr>
+            <?php
+        endforeach;
+    endif; ?>
+    </tbody>
+</table>

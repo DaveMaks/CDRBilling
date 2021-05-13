@@ -1,0 +1,444 @@
+<style>
+    span.ws-pre span.fancytree-title {
+        white-space: normal;
+        margin: 0 30px 0 5px;
+    }
+
+    .fancytree-container,
+    span.fancytree-focused span.fancytree-title {
+        outline: 0 !important;
+    }
+</style>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Стоимости звонков за период</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <form name="" action="" method="post">
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fab fa-searchengin"></i>
+                                Фильтр
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"
+                                        data-toggle="tooltip"
+                                        title="Collapse">
+                                    <i class="fas fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body" style="/*display: none;*/">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label>Период:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                                class="far fa-calendar-alt"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control float-right" id="txtDataRange">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label>Дополнительно для XLS:</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="AddNull">
+                                                <label class="form-check-label">Отобразить неучтеные</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-info" id="btnCreateReport">Сформировать</button>
+                            <button type="button" class="btn btn-success" id="btnCreateReportXLS"
+                                    title="Выгрузить в xls"><i class="fas fa-file-excel fg-green"></i></button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            Отчет
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" id="btnExpandAll" title="Развернуть все"><i
+                                        class="fas fa-angle-double-down"></i></button>
+                            <button type="button" class="btn btn-tool" id="btnCollapseAll" title="Свернуть все"><i
+                                        class="fas fa-angle-double-up"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="/*display: none;*/">
+                        <?= $this->getContent(); ?>
+                        <table id="tree" style="width: 100%">
+                            <!-- <caption>Loading&hellip;</caption> -->
+                            <colgroup>
+                                <col width="*"></col>
+                                <col></col>
+                                <col width="100px"></col>
+                                <col width="100px"></col>
+                                <col width="100px"></col>
+                                <col width="100px"></col>
+                            </colgroup>
+                            <thead>
+                            <tr>
+                                <th class="parent-path"></th>
+                                <th>Должность</th>
+                                <th>Тел вн.</th>
+                                <th>Длительность<br/>(мин.)</th>
+                                <th>Стоимость<br/>(тг.)</th>
+                                <th>Колличество</th>
+                            </tr>
+                            </thead>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="modalViewReport" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modalViewReportLabel">Отчет</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col" id="modalViewReportBody"></div>
+                </div>
+                <div class="row">
+                    <div class="col chartjs-render-monitor text-center">
+                        <canvas id="char1" width="500" height="200"></canvas>
+                    </div>
+                    <div class="col">
+                        <canvas id="char2" width="400" height="200"></canvas>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <table id="tblCallingPBX" class="display" style="width:100%">
+                            <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Номер направления</th>
+                                <th>Длительность (сек.)</th>
+                                <th>Тариф (тг.)</th>
+                                <th>Стоимость (тг.)</th>
+                                <th>Направление</th>
+                                <th>Имя устройства</th>
+                            </tr>
+                            </thead>
+
+                            <tfoot>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Номер направления</th>
+                                <th>Длительность (сек.)</th>
+                                <th>Тариф (тг.)</th>
+                                <th>Стоимость (тг.)</th>
+                                <th>Направление</th>
+                                <th>Имя устройства</th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+        </div>
+    </div>
+</div>
+</div>
+
+<iframe id="frmDownloadFile" src="" style="display: none;"></iframe>
+<script>
+
+
+    function ClearChart(obj) {
+        if (window['Chart_' + obj] != null) {
+            window['Chart_' + obj].destroy();
+        }
+    }
+
+    function CreateDonutChart(obj, label, data) {
+        var donutChartCanvas = $('#' + obj).get(0).getContext('2d')
+
+        var donutData = {
+            labels: label,
+            datasets: [
+                {
+                    data: data,
+                    backgroundColor: ['#f56954',
+                        '#00a65a',
+                        '#f39c12',
+                        '#00c0ef',
+                        '#3c8dbc',
+                        '#d2d6de',
+                        '#343a40',
+                        '#809690',
+                        '#C82220',
+                        '#DD9D6C',
+                        '#61232C',
+                        '#2B50B9',
+                    ],
+                }
+            ]
+        }
+        var donutOptions = {
+            maintainAspectRatio: false,
+            responsive: false,
+            legend: {
+                display: true,
+                position: 'right',
+                labels: {
+                    fontSize: 12,
+                    padding: 5,
+                }
+            }
+        }
+        if (window['Chart_' + obj] != null) {
+            window['Chart_' + obj].destroy();
+        }
+        window['Chart_' + obj] = new Chart(donutChartCanvas, {
+            type: 'doughnut',
+            data: donutData,
+            options: donutOptions
+        });
+    }
+
+    function limitStr(str, n, symb) {
+        if ((!n && !symb) || str.length <= n) return str;
+        symb = symb || '...';
+        return str.substr(0, n - symb.length) + symb;
+    }
+
+    function ShowModalWindowUserReport(tel) {
+        var dateRange = GetSelectData();
+        $('#modalViewReportLabel').html('Подробный отчет для ' + tel + ' с ' + (moment(dateRange.Start, "X").format('DD.MM.YYYY')) + ' по ' + (moment(dateRange.End, "X").format('DD.MM.YYYY')));
+        $('#modalViewReport').modal('show');
+        if ($.fn.dataTable.isDataTable('#tblCallingPBX')) {
+            table = $('#tblCallingPBX').DataTable();
+            table.destroy();
+        }
+        ClearChart('char1');
+        $.getJSON("<?=$this->url->get('Report/GetSummaryDirection/')?>" + tel + "/" + dateRange.Start + "/" + dateRange.End)
+            .done(function (json) {
+                if (json.length > 0) {
+                    var label = [];
+                    var dataChar = [];
+                    for (var i = 0; i < json.length; i++) {
+                        label.push(limitStr(json[i][1], 20));
+                        dataChar.push(json[i][0]);
+                    }
+                    CreateDonutChart('char1', label, dataChar);
+                }
+            });
+
+
+        /// TODO Добавить поле ID утройства откуда был выполнен вызов
+        $("#tblCallingPBX").DataTable({
+            "ajax": {
+                url: "<?=$this->url->get('Report/GetPBXReportToUsers/')?>" + tel + "/" + dateRange.Start + "/" + dateRange.End,
+                dataSrc: ""
+            },
+            columns: [
+                {data: 'datetimeconnect'},
+                {data: 'finalcalledpartynumber'},
+                {data: 'pbxduration'},
+                {data: 'tarif'},
+                {data: 'cost'},
+                {data: 'name'},
+                {data: 'origdevicename'},
+            ],
+            columnDefs: [
+                {className: "small", "targets": [6]}
+            ],
+            language: {
+                "processing": "Подождите...",
+                "search": "Поиск:",
+                "lengthMenu": "Показать _MENU_ записей",
+                "info": "Записи с _START_ до _END_ из _TOTAL_ записей",
+                "infoEmpty": "Записи с 0 до 0 из 0 записей",
+                "infoFiltered": "(отфильтровано из _MAX_ записей)",
+                "loadingRecords": "Загрузка записей...",
+                "zeroRecords": "Записи отсутствуют.",
+                "emptyTable": "В таблице отсутствуют данные",
+                "paginate": {
+                    "first": "Первая",
+                    "previous": "Предыдущая",
+                    "next": "Следующая",
+                    "last": "Последняя"
+                },
+                "aria": {
+                    "sortAscending": ": активировать для сортировки столбца по возрастанию",
+                    "sortDescending": ": активировать для сортировки столбца по убыванию"
+                },
+                "select": {
+                    "rows": {
+                        "_": "Выбрано записей: %d",
+                        "0": "Кликните по записи для выбора",
+                        "1": "Выбрана одна запись"
+                    }
+                }
+            }
+        });
+    }
+
+
+    $(document).ready(function () {
+        $('#selectUnits').select2();
+        $('#txtDataRange').daterangepicker({
+                //singleDatePicker: true,
+                startDate: ActivSelectDay,
+                autoApply: true,
+                opens: "left",
+                showDropdowns: true,
+                locale: {
+                    "format": "DD.MM.YYYY",
+                    "separator": "-",
+                    "applyLabel": "Применить",
+                    "cancelLabel": "Отменить",
+                    "fromLabel": "с",
+                    "toLabel": "по",
+                    "customRangeLabel": "Другое",
+                    "weekLabel": "Мес",
+                    "daysOfWeek": [
+                        "Вс",
+                        "Пн",
+                        "Вт",
+                        "Ср",
+                        "Чт",
+                        "Пт",
+                        "Сб",
+                    ],
+                    "monthNames": [
+                        "Январь",
+                        "Февраль",
+                        "Март",
+                        "Апрель",
+                        "Май",
+                        "Июнь",
+                        "Июль",
+                        "Август",
+                        "Сентябрь",
+                        "Октябрь",
+                        "Ноябрь",
+                        "Декабрь"
+                    ],
+                    "firstDay": 1
+                },
+            },
+            function (start, end, label) {
+            });
+
+        $('#btnExpandAll').click(function () {
+            $.ui.fancytree.getTree("#tree").expandAll();
+        });
+        $('#btnCollapseAll').click(function () {
+            $.ui.fancytree.getTree("#tree").expandAll(false, 2);
+        });
+
+        /* $('#btnGetViewUserLog').click(function () {
+             ShowModalWindowUserReport(2223);
+         });*/
+
+        // обработка XLS отчета
+        $('#btnCreateReportXLS').click(function () {
+            var dateRange = GetSelectData();
+            if (dateRange == null) {
+                return;
+            }
+            $("#frmDownloadFile").attr("src", "<?=$this->url->get('Report/GetPBXReportXLS/')?>" + dateRange.Start + "/" + dateRange.End + '/' + $('#AddNull').val());
+        });
+
+        // обработка табличного отчета
+        $('#btnCreateReport').click(function () {
+            var dateRange = GetSelectData();
+            if (dateRange == null) {
+                return;
+            }
+
+            /** Формируем таблицу для отчета по Структурным подразделениям*/
+                //    $("#tree").remove();
+            var urlString = "<?=$this->url->get('Report/GetCostPBXFromUnit/')?>" + dateRange.Start + "/" + dateRange.End + '/' + $('#AddNull').val();
+            var tree = $.ui.fancytree.getTree("#tree");
+            if (tree != undefined) {
+                tree.reload({
+                    url: urlString
+                })
+            } else {
+                $("#tree").fancytree({
+                    extensions: ["table"],
+                    checkbox: false,
+                    table: {
+                        indentation: 20,      // indent 20px per node level
+                        nodeColumnIdx: 0,     // render the node title into the 2nd column
+                        //checkboxColumnIdx: 0  // render the checkboxes into the 1st column
+                    },
+                    source: {
+                        url: urlString
+                    },
+                    strings: {
+                        loading: "Загрузка...", // &#8230; would be escaped when escapeTitles is true
+                        loadError: "Ошибка загрузки!",
+                        moreData: "More...",
+                        noData: "Нет Данных.",
+                    },
+                    //minExpandLevel: 2,
+
+                    icon: function (event, data) {
+                        if (data.node.isFolder())
+                            return "fas fa-users";
+                        else
+                            return "far fa-user";
+                    },
+                    renderColumns: function (event, data) {
+                        var node = data.node,
+                            $tdList = $(node.tr).find(">td");
+                        $tdList.eq(1).text(node.data.position);
+                        $tdList.eq(2).text(node.data.tel);
+                        $tdList.eq(3).text((node.data.duration > 0) ? (node.data.duration / 60).toFixed(2) : node.data.duration);
+                        $tdList.eq(4).text(node.data.cost);
+                        $tdList.eq(5).text(node.data.count);
+                    },
+                    activate: function (event, data) {
+                        if (data.node.isFolder()) {
+                            return false;
+                        }
+                        var node = data.node;
+                        if (Number.parseInt(node.data.tel) > 0)
+                            ShowModalWindowUserReport(node.data.tel);
+                    },
+                });
+            }
+
+        });
+    });
+</script>

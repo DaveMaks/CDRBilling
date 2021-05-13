@@ -1,0 +1,224 @@
+<style>
+
+    .calltimeline-header {
+        fill: none;
+
+        stroke-width: 0;
+    }
+
+    .calltimeline-body {
+        fill: none;
+        stroke: #dbdcdd;
+        stroke-width: 1;
+    }
+
+    .calltimeline-body.calltimeline-workDay {
+        fill: #28a745;
+        opacity: .5;
+    }
+
+    .calltimeline-Call {
+        stroke: none;
+        stroke-width: 0;
+    }
+
+    .calltimeline-out {
+        fill: #3c8dbc;
+    }
+
+    .calltimeline-in {
+        fill: #ff851b;;
+    }
+
+    ul.fancytree-container {
+        border: none;
+    }
+
+    span.ws-pre span.fancytree-title {
+        white-space: normal;
+        margin: 0 30px 0 5px;
+    }
+    .fancytree-container,
+    span.fancytree-focused span.fancytree-title
+    {
+        outline: 0 !important;
+    }
+</style>
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Время разговора в течении дня</h1>
+            </div>
+            <div class="col-sm-6">
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card card-default color-palette-box">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            Структура
+                        </h3>
+                        <div class="card-tools">
+                            <span id="SelectDayValue"></span>
+                            <a href="#"><span id="SelectDay"><i class="fas fa-calendar-alt"></i></span></a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="UnitsTree" >
+                            <?php //$this->view->treeUnit; ?>
+
+                        </div>
+                        <!--<ul data-widget="treeview"
+                            class="list-unstyled">
+
+                            <li><a href="#">One Level</a></li>
+                            <li class="treeview">
+                                <a href="#">Multilevel</a>
+                                <ul class="treeview-menu">
+                                    <li><a href="#">Level 2</a></li>
+                                </ul>
+                            </li>-->
+                        <!--</ul>-->
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card card-default color-palette-box">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            Сотрудники
+                        </h3>
+                    </div>
+                    <div class="card-body" id="boxListUser">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- COLOR PALETTE -->
+    </div>
+</section>
+<script>
+
+    var ActivSelectDay = moment();
+    var ActivUnitID=0;
+
+    function ShowTableUserTimeLine(id) {
+        // var period = 0;
+        $('#boxListUser').html('<div class="text-center p-2"><i class="fas fa-circle-notch fa-spin text-muted "></i></div>');
+        $.get("<?=$this->url->get('Report/GetUserTimeLine/')?>" + id + "/" + ActivSelectDay.unix(), function (data) {
+            $('#boxListUser').html(data);
+        });
+        ActivUnitID=id;
+    }
+
+
+    $('#SelectDay').daterangepicker({
+            singleDatePicker: true,
+            startDate: ActivSelectDay,
+            autoApply: true,
+            opens: "center",
+            showDropdowns: true,
+            locale: {
+                "format": "DD.MM.YYYY",
+                "separator": "-",
+                "applyLabel": "Применить",
+                "cancelLabel": "Отменить",
+                "fromLabel": "с",
+                "toLabel": "по",
+                "customRangeLabel": "Другое",
+                "weekLabel": "Мес",
+                "daysOfWeek": [
+                    "Вс",
+                    "Пн",
+                    "Вт",
+                    "Ср",
+                    "Чт",
+                    "Пт",
+                    "Сб",
+
+                ],
+                "monthNames": [
+                    "Январь",
+                    "Февраль",
+                    "Март",
+                    "Апрель",
+                    "Май",
+                    "Июнь",
+                    "Июль",
+                    "Август",
+                    "Сентябрь",
+                    "Октябрь",
+                    "Ноябрь",
+                    "Декабрь"
+                ],
+                "firstDay": 1
+            },
+        },
+        function (start, end, label) {
+            $('#SelectDayValue').html(start.format('YYYY-MM-DD'));
+            ActivSelectDay = start;
+            ShowTableUserTimeLine(ActivUnitID);
+        });
+
+    $('#SelectDayValue').html(ActivSelectDay.format('YYYY-MM-DD'));
+
+    $(document).ready(function () {
+        $("#UnitsTree").fancytree({
+            //icon: true,
+            source: {
+                url: "<?=$this->url->get('Report/GetUnits/')?>"
+            },
+            extensions: ["glyph"],
+            keyboard: true,
+            focusOnSelect: false,
+            minExpandLevel: 0,
+            autoScroll:true,
+            icon: function (event, data) {
+                if (data.node.isFolder())
+                    return "fas fa-users";
+                else
+                    return "far fa-user";
+            },
+            activate: function(event, data){
+                ShowTableUserTimeLine(data.node.key);console.log(data.node.key);
+            },
+            /*glyph: {
+                // The preset defines defaults for all supported icon types.
+                preset: "bootstrap3",
+                map: {
+                    _addClass: "",
+                    checkbox: "fas fa-square",
+                    checkboxSelected: "fas fa-check-square",
+                    checkboxUnknown: "fas fa-square",
+                    radio: "fas fa-circle",
+                    radioSelected: "fas fa-circle",
+                    radioUnknown: "fas fa-dot-circle",
+                    dragHelper: "fas fa-arrow-right",
+                    dropMarker: "fas fa-long-arrow-right",
+                    error: "fas fa-exclamation-triangle",
+                    expanderClosed: "fas fa-caret-right fg-red",
+                    expanderLazy: "fas fa-angle-right",
+                    expanderOpen: "fas fa-caret-down",
+                    loading: "fas fa-spinner fa-pulse",
+                    nodata: "fas fa-meh",
+                    noExpander: "",
+                    // Default node icons.
+                    // (Use tree.options.icon callback to define custom icons based on node data)
+                    doc: "fas fa-file",
+                    docOpen: "fas fa-file",
+                    folder: "fas fa-folder",
+                    folderOpen: "fas fa-folder-open"
+                }
+        },*/
+        });
+    });
+</script>

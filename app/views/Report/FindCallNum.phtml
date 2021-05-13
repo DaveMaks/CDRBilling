@@ -1,0 +1,310 @@
+<?php
+?>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Поиск по номеру телефона</h1>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <form name="" action="" method="post">
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fab fa-searchengin"></i>
+                                Фильтр
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse"
+                                        data-toggle="tooltip"
+                                        title="Collapse">
+                                    <i class="fas fa-minus"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body" style="/*display: none;*/">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <label for="txtDataRange">Период:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                                class="far fa-calendar-alt"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control float-right" id="txtDataRange"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <label for="txtSearchOut">Вызов:</label>
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">
+                                                            <i class="fas fa-sign-out-alt"></i>
+                                                        </span>
+                                                    </div>
+                                                    <input type="text" id="txtSearchOut" class="form-control"
+                                                           placeholder="2281 (кто)">
+                                                </div>
+                                            </div>
+                                            <div class="col-2">
+                                                <select class="form-control" id="swOperation">
+                                                    <option value="AND">И</option>
+                                                    <option value="OR">ИЛИ</option>
+                                                </select>
+                                            </div>
+                                            <div class="col">
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text"><i
+                                                                    class="fas fa-sign-in-alt"></i></span>
+                                                    </div>
+                                                    <input type="text" id="txtSearchIn" class="form-control"
+                                                           placeholder="8551 (куда)">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="text-secondary text-sm font-weight-light">
+                                             Форма может содержать номер/а через ','<br/>
+                                             Также допускаются символы маски *(неизвестное количество символов),?(один символ) стоит учитывать что поиск с такими параметрами будет значительно медленней<br/>
+                                             Пример:<br/>
+                                             <i>2281,7707*</i> будет выполнен поиск с вн. тел 2281 или сотовые номера с кодом 7707....<br/>
+                                         </span>
+                                        <!--
+
+                                             <label>Исходящий:</label>
+                                             <input type="email" class="form-control" id="txtSearchForm"
+                                                    placeholder="2282,7075000001">
+                                             <label>Исходящий:</label>
+
+                                             <label>Входящий:</label>
+                                             <input type="email" class="form-control" id="txtSearchForm"
+                                                    placeholder="2282,7075000001">
+                                                    -->
+                                        <!--
+                                         <span class="text-secondary text-sm font-weight-light">
+                                             Форма запроса может содержать номер/а через ',' телефона при этом он будет искатся как во входящих так и исходящих,
+                                             так же можно ввести уточнающий запрос согласно синтаксису: in:ЗНАЧЕНИЕ,out:ЗНАЧЕНИЕ2. Допускается использование замещающего символа * <br/>
+                                             Пример:<br/>
+                                             <i>out:2281,in:7707*</i> будет выполнен поиск с вн. тел 2281 на все сотовые номера с кодом 7707....<br/>
+                                             <i>2281,2382</i> будет выполнен поиск всех звонков 2281 как исходящих так и входящих и аналогично по 2382<br/>
+                                         </span>
+                                         <ul class="text-secondary text-sm font-weight-light">
+
+                                         </ul>-->
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-info" id="btnCreateReport">Найти</button>
+                            <!--<button type="button" class="btn btn-success" id="btnCreateReportXLS"
+                                    title="Выгрузить в xls"><i class="fas fa-file-excel fg-green"></i></button>-->
+                            <!-- <button type="button" class="btn btn-success" id="btnGetViewUserLog">Мод тест</button>-->
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <!--<i class="fab fa-searchengin"></i>-->
+                            Отчет
+                        </h3>
+                    </div>
+                    <div class="card-body" style="/*display: none;*/">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="alert alert-danger" style="display: none;"></div>
+                                    <div id="ReportTable-box">
+                                        <table id="tblSearchReport" class="display" style="width:100%">
+                                            <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Дата/Время</th>
+                                                <th>Откуда</th>
+                                                <th></th>
+                                                <th>Куда</th>
+                                                <th></th>
+                                                <th>Длительность (сек.)</th>
+                                                <th>Тариф (тг.)</th>
+                                                <th>Стоимость (тг.)</th>
+                                                <th>Направление</th>
+                                                <th>ID исх. устройства</th>
+                                                <th>ID вх. устройства</th>
+                                            </tr>
+                                            </thead>
+
+                                            <tfoot>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Дата/Время</th>
+                                                <th>Откуда</th>
+                                                <th></th>
+                                                <th>Куда</th>
+                                                <th></th>
+                                                <th>Длительность (сек.)</th>
+                                                <th>Тариф (тг.)</th>
+                                                <th>Стоимость (тг.)</th>
+                                                <th>Направление</th>
+                                                <th>ID исх. устройства</th>
+                                                <th>ID вх. устройства</th>
+                                            </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                    <div
+                                    <div id="ReportTable-load" style="display:none;">
+                                        <i class="fas fa-circle-notch fa-spin text-muted "></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+
+    function CreateReport() {
+        $.fn.dataTable.ext.errMode = 'none';
+        let dateRange = GetSelectData();
+        $(".alert.alert-danger").hide();// скрыть ошибки
+        //$("#ReportTable-box").hide(); // скрыть таблицу
+        //  $("#ReportTable-load").show();
+        if ($.fn.dataTable.isDataTable('#tblSearchReport')) {
+            table = $('#tblSearchReport').DataTable();
+            table.destroy();
+        }
+        $("#tblSearchReport").on('error.dt', function (e, settings, techNote, message) {
+            console.log(settings.jqXHR);
+            let msg = $(".alert.alert-danger");
+            msg.show();
+            msg.html(message);
+            console.log('An error has been reported by DataTables: ', message);
+        }).DataTable({
+            "processing": true,
+            "ajax": {
+                url: "<?=$this->url->get('Report/CreateReportFrom/')?>",
+                //+ dateRange.Start + "/" + dateRange.End + "/" + $('#txtSearchForm').val()
+                dataSrc: "data",
+                type: "GET",
+                data: {
+                    "DateStart": dateRange.Start,
+                    "DateEnd": dateRange.End,
+                    "txtSearchOut": $('#txtSearchOut').val(),
+                    "txtSearchIn": $('#txtSearchIn').val(),
+                    "swOperation": $('#swOperation').val(),
+                }
+
+            },
+            /*   "initComplete": function (settings, json) {
+                   $("#ReportTable-box").show();
+                   $("#ReportTable-load").hide();
+               },*/
+            columns: [
+                {data: 'cdrid'},
+                {data: 'datetimeconnect'},
+                {data: 'calling'},
+                {
+                    data: function (row, type, set) {
+                        return ((row["callingusr_fullName"] !== null) ? row["callingusr_fullName"] : "") +
+                            ((row["callingusr_title"] !== null) ? " (" + row["callingusr_title"] + ")" : "");
+                    }
+                },
+                {data: 'called'},
+                {
+                    data: function (row, type, set) {
+                        return ((row["calledusr_fullName"] !== null) ? row["calledusr_fullName"] : "") +
+                            ((row["calledusr_title"] !== null) ? " (" + row["calledusr_title"] + ")" : "");
+                    }
+                },
+                {data: 'cdrduration'},
+                {data: 'tarif'},
+                {data: 'cost'},
+                {data: 'PhoneCodeName'},
+                {data: 'srcdevicename'},
+                {data: 'dstdevicename'},
+            ],
+            columnDefs: [
+                {className: "small", "targets": [0, 3, 5, 10, 11]},
+                {className: "text-center", "targets": [2, 4, 6, 7, 8]},
+
+            ],
+            language: DataTableLanguageRU
+        });
+    }
+
+
+    $(document).ready(function () {
+        $('#txtDataRange').daterangepicker({
+                //singleDatePicker: true,
+                startDate: ActivSelectDay,
+                autoApply: true,
+                opens: "left",
+                showDropdowns: true,
+                locale: {
+                    "format": "DD.MM.YYYY",
+                    "separator": "-",
+                    "applyLabel": "Применить",
+                    "cancelLabel": "Отменить",
+                    "fromLabel": "с",
+                    "toLabel": "по",
+                    "customRangeLabel": "Другое",
+                    "weekLabel": "Мес",
+                    "daysOfWeek": [
+                        "Вс",
+                        "Пн",
+                        "Вт",
+                        "Ср",
+                        "Чт",
+                        "Пт",
+                        "Сб",
+                    ],
+                    "monthNames": [
+                        "Январь",
+                        "Февраль",
+                        "Март",
+                        "Апрель",
+                        "Май",
+                        "Июнь",
+                        "Июль",
+                        "Август",
+                        "Сентябрь",
+                        "Октябрь",
+                        "Ноябрь",
+                        "Декабрь"
+                    ],
+                    "firstDay": 1
+                },
+            },
+            function (start, end, label) {
+            });
+        $('#btnCreateReport').click(function () {
+            CreateReport();
+        });
+    });
+</script>

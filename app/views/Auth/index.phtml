@@ -1,0 +1,95 @@
+<div class="login-box">
+    <div class="login-logo">
+        <a href="/"><b>Система</b> Биллинга</a>
+    </div>
+    <!-- /.login-logo -->
+    <div class="card">
+        <div class="card-body login-card-body">
+            <p class="login-box-msg"><?php $this->flash->output(true); ?></p>
+            <form id="frmUserValidation"
+                  action="<?= $this->url->get($this->dispatcher->getControllerName() . '/isUserValidation'); ?>"
+                  method="post">
+                <div class="input-group mb-3 form-group">
+
+                    <input type="text" name="txtlogin" class="form-control" placeholder="Логин" value="">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-user-shield"></span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="input-group mb-3 form-group">
+                    <input type="password" name="txtpassword" class="form-control" placeholder="Пароль" value="">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="cbxFromAD" value="true" <?=(empty($this->config->ActiveDirectory->adminGroupFromAD) && empty($this->config->ActiveDirectory->reportGroupFromAD))?"":"checked";?>>
+                            <label class="form-check-label">Авторизация Active Directory</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary btn-block">Войти</button>
+                    </div>
+                    <!-- /.col -->
+                </div>
+            </form>
+        </div>
+        <!-- /.login-card-body -->
+    </div>
+</div>
+<div>
+    <?php echo $this->getContent(); ?>
+</div>
+<script>
+
+    $(document).ready(function () {
+        $('#frmUserValidation').validate({
+            submitHandler: function (form) {
+                form.submit();
+            },
+            rules: {
+                txtlogin: {
+                    required: true,
+                    minlength: 3
+                },
+                txtpassword: {
+                    required: true,
+                    minlength: 6
+                },
+            },
+            messages: {
+                txtlogin: {
+                    required: "Пожалуйста заполните поле",
+                },
+                txtpassword: {
+                    required: "Пожалуйста заполните поле",
+                    minlength: "Поле пароля не может быть меньше 6 символов"
+                },
+            },
+            errorElement: 'span',
+            errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.form-group').append(error);
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+    });
+
+</script>

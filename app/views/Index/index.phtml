@@ -1,0 +1,181 @@
+<div class="container-fluid">
+    <!-- Small boxes (Stat box) -->
+    <div class="row" id="dashboardUpRow">
+        <!--col-12 col-sm-6 col-md-3-->
+        <div class="col" data-name="countIn"></div>
+        <div class="col" data-name="countOut"></div>
+        <div class="col" data-name="countDuration"></div>
+        <!--<div class="col-12 col-sm-6 col-md-3" data-name="summ"></div>-->
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Общее количество звонков</h5>
+                   <!-- <div class="card-tools">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-tool dropdown-toggle" data-toggle="dropdown">
+                                <i class="fas fa-wrench"></i>
+                            </button>
+                        </div>
+                    </div>-->
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+
+                            <div class="chart">
+                                <div class="chartjs-size-monitor">
+                                    <div class="chartjs-size-monitor-expand">
+                                        <div class=""></div>
+                                    </div>
+                                    <div class="chartjs-size-monitor-shrink">
+                                        <div class=""></div>
+                                    </div>
+                                </div>
+                                <!-- Sales Chart Canvas -->
+                                <canvas id="salesChart" height="180"
+                                        style="height: 180px; display: block; width: 1049px;" width="1049"
+                                        class="chartjs-render-monitor"></canvas>
+                            </div>
+                            <!-- /.chart-responsive -->
+                        </div>
+                        <!-- /.row -->
+                    </div>
+                    <!-- ./card-body -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">TOP 10 Входящий</h5>
+                </div>
+                <div class="card-body table-responsive p-0" id="topCallIn">
+
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">TOP 10 Исходящих</h5>
+                </div>
+                <div class="card-body table-responsive p-0" id="topCallOut">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="#dump"></div>
+    <?php echo $this->getContent(); ?>
+    <script>
+        var period = 'day';
+
+        function UILoadInfoBoxs() {
+            var cells = $("#dashboardUpRow div");
+            cells.each(function (index, obj) {
+                var dataEM = $(obj).data('name');
+                if (dataEM) {
+                    //console.log('--->'+data);
+                    $(obj).html('<i class="fas fa-circle-notch fa-spin text-muted "></i>');
+                    $.get("<?=$this->url->get('Dashborad/getInfoBox/')?>" + dataEM + "/" + period, function (data) {
+                        $(obj).html(data);
+                    });
+                }
+            })
+        }
+        function UILoadTable() {
+            $('#topCallIn').html('<div class="text-center p-2"><i class="fas fa-circle-notch fa-spin text-muted "></i></div>');
+            $('#topCallOut').html('<div class="text-center p-2"><i class="fas fa-circle-notch fa-spin text-muted "></i></div>');
+            $('#topCallIn').load("<?=$this->url->get('Dashborad/GetTOPTable/in/duration/')?>" + period);
+            $('#topCallOut').load("<?=$this->url->get('Dashborad/GetTOPTable/out/duration/')?>" + period);
+        }
+        function UILoadChart() {
+            $.getJSON("<?=$this->url->get('Dashborad/GetChartTable/month')?>", function (data) {
+                if (!Array.isArray(data))
+                    return;
+                UICreateChart(data);
+            });
+        }
+        function UICreateChart(data) {
+            var salesChartCanvas = $('#salesChart').get(0).getContext('2d');
+            var salesChartData = {
+                labels: data[0],
+                datasets: [
+                    {
+                        label: 'Длительность',
+                        backgroundColor: 'rgba(60,141,188,0.5)',
+                        borderColor: 'rgba(60,141,188,0.5)',
+                        pointRadius: true,
+                        pointColor: '#3b8bba',
+                        pointStrokeColor: 'rgba(60,141,188,1)',
+                        pointHighlightFill: '#fff',
+                        pointHighlightStroke: 'rgba(60,141,188,1)',
+                        data: data[1][0],
+                        yAxisID: "y-axis-duration"
+                    },
+                    {
+                        label: 'Колличество',
+                        backgroundColor: 'rgba(210, 214, 222, 0.5)',
+                        borderColor: 'rgba(210, 214, 222, 0.5)',
+                        pointRadius: false,
+                        pointColor: 'rgba(210, 214, 222, 1)',
+                        pointStrokeColor: '#c1c7d1',
+                        pointHighlightFill: '#fff',
+                        pointHighlightStroke: 'rgba(220,220,220,1)',
+                        data: data[1][1],
+                        yAxisID: "y-axis-count"
+                    },
+                ]
+            }
+            var salesChartOptions = {
+                maintainAspectRatio: false,
+                responsive: true,
+                legend: {
+                    display: false
+                },
+                scales: {
+                    xAxes: [{}],
+                    yAxes: [
+                        {
+                            id: "y-axis-duration",
+                            ticks: {
+                                display: false,
+                                labelString: 'dfdf',
+                            },
+                            stacked: false,
+                            gridLines: {
+                                display: false,
+                            }
+                        }, {
+                            id: "y-axis-count",
+                            ticks: {
+                                display: false
+                            },
+                            gridLines: {
+                                display: false,
+                            }
+                        }
+                    ]
+                }
+            }
+            var salesChart = new Chart(salesChartCanvas, {
+                    type: 'line',
+                    data: salesChartData,
+                    options: salesChartOptions
+                }
+            )
+        }
+
+        $(document).ready(function () {
+            UILoadInfoBoxs();
+            UILoadTable();
+            UILoadChart();
+        })
+    </script>
+</div>

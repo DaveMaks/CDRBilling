@@ -1,0 +1,98 @@
+<style>
+    #BoxTable .table-responsive {
+        height: 300px;
+    }
+</style>
+<div class="container-fluid">
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h3 class="m-0 text-dark">Импорт файлов билинга Kcell</h3>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <div class="row m-2">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Добавить файл</h3>
+                </div>
+                <div class="card-body">
+                    <?php
+                    /**
+                     * @var $msg \Phalcon\Flash\Session
+                     */
+                    //$msg=$this->flash;
+                    $this->flash->output(true);
+                    ?>
+                    <?= Phalcon\Tag::form(
+                        [
+                            $this->dispatcher->getControllerName() . '/' . $this->dispatcher->getActionName(),
+                            "method" => "post",
+                            "name" => "importFile",
+                            "id" => "importFile",
+                            "enctype" => "multipart/form-data",
+                        ]) ?>
+                    <div class="form-group">
+                        <div class="input-group mb-2">
+
+                            <select class="input-group-prepend" id="TypeParsingFormat" name="TypeParsingFormat">
+                                <?php
+                                $i = 0;
+                                foreach (\App\PBX\ParsingPBXBilling::$listType as $name):?>
+                                    <option <?= ($DefVal_TypeParsingFormat == $i) ? 'selected' : '' ?>
+                                            value="<?= $i++; ?>"><?= $name ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="FilePBXToImport" accept=".xls,.xlsx,*.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                                       name="FilePBXToImport">
+                                <label class="custom-file-label" for="FilePBXToImport">Выберите файл размером не более
+                                    20Мб и типом *.xls, .xlsx, *.csv</label>
+                            </div>
+                        </div>
+                    </div>
+                    <?= Phalcon\Tag::endForm(); ?>
+                    <br/>
+                    <div class="" id="BoxTable">
+                        <!-- Вывод временной таблицы импортируемого файла -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row m-2">
+        <div class="col">
+            <?php echo $this->getContent(); ?>
+        </div>
+    </div>
+</div>
+<script>
+    function UILoadTableBoxs(idPage) {
+        $('#BoxTable').html('<div class="text-center p-2"><i class="fas fa-circle-notch fa-spin text-muted "></i></div>');
+        $('#BoxTable').load("<?=$this->url->get(
+                $this->dispatcher->getControllerName() . '/ViewImportTable/');?>" + idPage);
+    }
+    function UIPageSelect(pageid) {
+        UILoadTableBoxs(pageid);
+    }
+
+    function btnImportClick() {
+        console.log("btnImport click");
+        $(location).attr('href', "<?=$this->url->get(
+            $this->dispatcher->getControllerName() . '/MoveDataImport');?>");
+    }
+
+    $(document).ready(function () {
+        UILoadTableBoxs(1);
+        $('input[type=file]').change(function () {
+            // select the form and submit
+            $('#BoxTable').html('<p class="text-center"><i class="fas fa-2x fa-sync-alt fa-spin text-secondary"></i></p>');
+            $('#importFile').submit();
+        });
+    });
+
+
+</script>
