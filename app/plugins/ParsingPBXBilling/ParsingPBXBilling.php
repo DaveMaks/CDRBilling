@@ -14,10 +14,12 @@ class ParsingPBXBilling
 {
     const TypeKcell = 'Kcell';
     const TypeKaztelecom = 'Kaztelecom';
+    const TypeKaztelecomV2 = 'Kaztelecom_Ver2';
 
     public static $listType = [
         self::TypeKcell,
-        self::TypeKaztelecom
+        self::TypeKaztelecom,
+        self::TypeKaztelecomV2
     ];
 
     private $filePath = null;
@@ -32,6 +34,9 @@ class ParsingPBXBilling
                 break;
             case self::TypeKaztelecom:
                 $this->dataclass = FormatImportKazTelecom::class;
+                break;
+            case self::TypeKaztelecomV2:
+                $this->dataclass = FormatImportKazTelecomV2::class;
                 break;
         }
 

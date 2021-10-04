@@ -15,6 +15,7 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
     private $table = array();
     public $countRows = 0;
     public $countSkipRows = 0;
+    public $curentPage=0;
 
     public function __construct($inputFileName, $maxRow = null)
     {
@@ -33,12 +34,18 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
         $indexPage = $this->getIndexPage();
         if ($inputFileType == 'Csv') // по умолчанию, при экспорте из xls сохратяется в win-1252
             $reader->setInputEncoding('CP1252');
-
         $spreadsheet = $reader->load($inputFileName);
-        $indexPage = ($spreadsheet->getSheetCount() - 1 >= $indexPage) ? $indexPage : 0; // если не существует листа
-        $data = $spreadsheet->setActiveSheetIndex($indexPage)->toArray("", false, false);
+        $indexPage=(is_array($indexPage) && count($indexPage)>0)?$indexPage:array($indexPage);
+        foreach($indexPage as $curentPage){
+            $this->curentPage=$curentPage;
+            $this->ParsingSheet($spreadsheet,$curentPage);
+        }
         unset($spreadsheet);
         unset($reader);
+    }
+    private function ParsingSheet(&$spreadsheet,$indexPage){
+        $indexPage = ($spreadsheet->getSheetCount() - 1 >= $indexPage) ? $indexPage : 0; // если не существует листа
+        $data = $spreadsheet->setActiveSheetIndex($indexPage)->toArray("", false, false);
         if (is_array($data) && !empty($data)) {
             $i = 0;
             foreach ($data as $row) {
@@ -58,7 +65,7 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
 
     abstract protected function ParsingRowToModel($arrayRow = array()): ?RowPBXModel;
 
-    abstract protected function getIndexPage(): ?int;
+    abstract protected function getIndexPage();
 
     public function current()
     {
