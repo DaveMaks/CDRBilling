@@ -1,0 +1,14 @@
+RewriteEngine On
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    #RewriteCond   %{REQUEST_FILENAME} !-d
+    #RewriteCond   %{REQUEST_FILENAME} !-f
+    #RewriteRule   ^([0-9A-Za-z\x7f-\xff]*)$ index.php?params=$1 [L]
+    
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+
+</IfModule>

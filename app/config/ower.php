@@ -17,6 +17,7 @@ return [
         'Таджикистан',
         'Узбекистан'],
     'folderArchivePBX' => '/srv/cucm/archivePBX/',
-
+    'tempDir'=>'/xampp/tmp',
+    'baseUrl'=>'http://' . $_SERVER['SERVER_NAME'] . '/'
 ];
 

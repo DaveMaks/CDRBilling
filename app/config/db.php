@@ -1,8 +1,8 @@
 <?php
 return array(
     'host' => 'localhost',
-    'username' => 'cucm',
-    'password' => 'cucm',
+    'username' => 'root',
+    'password' => '',
     'dbname' => 'cucmdb',
     "charset" => "utf8"
 

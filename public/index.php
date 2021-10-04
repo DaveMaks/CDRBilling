@@ -1,5 +1,4 @@
 <?php
-
 use Phalcon\Escaper;
 use Phalcon\Loader;
 use Phalcon\Mvc\View;
@@ -52,7 +51,7 @@ $loader->register();
 // Создаём контейнер DI
 $di = new FactoryDefault();
 
-$di->setShared(
+$di->set(
     'config',
     function () {
         $config = [
@@ -65,10 +64,10 @@ $di->setShared(
 );
 $di->setShared(
     'session',
-    function () {
+    function () use ($di) {
         $session = new Session();
         $files = new Phalcon\Session\Adapter\Stream([
-            'savePath' => '/tmp',
+            'savePath' => $this->get('config')->tempDir
         ]);
         $session->setAdapter($files)->start();
         $session->start();
@@ -90,7 +89,7 @@ $di->set(
     'url',
     function () {
         $url = new UrlProvider();
-        $url->setBaseUri('http://' . $_SERVER['SERVER_ADDR'] . '/');
+        $url->setBaseUri($this->get('config')->baseUrl);
         return $url;
     });
 $di->set(

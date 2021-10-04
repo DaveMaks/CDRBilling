@@ -10,14 +10,13 @@ class tableSystemUsers extends Model
 {
     public $id;
     public $login;
-    private $password;
+    public $password;
     public $description;
     /**
      * @var $roleList mixed array|string  массив ролей
      */
     public $roleList;
-    private $role;
-
+    public $role;
 
     public function initialize()
     {
