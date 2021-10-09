@@ -16,8 +16,8 @@ return [
         'Россия',
         'Таджикистан',
         'Узбекистан'],
-    'folderArchivePBX' => '/srv/cucm/archivePBX/',
-    'tempDir'=>'/xampp/tmp',
-    'baseUrl'=>'http://' . $_SERVER['SERVER_NAME'] . '/'
+    'folderArchivePBX' => '/xampp/htdocs/biling/archivePBX/',
+    'tempDir'=>session_save_path(),
+    'baseUrl'=>'http://' . ((isset($_SERVER['SERVER_NAME']))?$_SERVER['SERVER_NAME']:'') . '/'
 ];
 

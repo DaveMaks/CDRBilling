@@ -64,14 +64,16 @@ $di->setShared(
 $console = new ConsoleApp();
 $console->setDI($di);
 $arguments = [];
-foreach ($argv as $k => $arg) {
-    if ($k === 1) {
-        $arguments['task'] = $arg;
-    } elseif ($k === 2) {
-        $arguments['action'] = $arg;
-    } elseif ($k >= 3) {
-        $arguments['params'][] = $arg;
-    }
+if (!empty($argv) && count($argv)>0){
+	foreach ($argv as $k => $arg) {
+		if ($k === 1) {
+			$arguments['task'] = $arg;
+		} elseif ($k === 2) {
+			$arguments['action'] = $arg;
+		} elseif ($k >= 3) {
+			$arguments['params'][] = $arg;
+		}
+	}
 }
 
 try {
