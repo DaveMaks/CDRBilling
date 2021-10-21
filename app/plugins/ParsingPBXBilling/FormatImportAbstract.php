@@ -15,10 +15,12 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
     private $table = array();
     public $countRows = 0;
     public $countSkipRows = 0;
-    public $curentPage=0;
+    public $curentPage = 0;
+    private $_maxRow=null;
 
     public function __construct($inputFileName, $maxRow = null)
     {
+        $this->_maxRow=$maxRow;
         if (!is_file($inputFileName)) {
             throw new Exception('Файл "' . $inputFileName . '" не существует! ');
         }
@@ -35,15 +37,17 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
         if ($inputFileType == 'Csv') // по умолчанию, при экспорте из xls сохратяется в win-1252
             $reader->setInputEncoding('CP1252');
         $spreadsheet = $reader->load($inputFileName);
-        $indexPage=(is_array($indexPage) && count($indexPage)>0)?$indexPage:array($indexPage);
-        foreach($indexPage as $curentPage){
-            $this->curentPage=$curentPage;
-            $this->ParsingSheet($spreadsheet,$curentPage);
+        $indexPage = (is_array($indexPage) && count($indexPage) > 0) ? $indexPage : array($indexPage);
+        foreach ($indexPage as $curentPage) {
+            $this->curentPage = $curentPage;
+            $this->ParsingSheet($spreadsheet, $curentPage);
         }
         unset($spreadsheet);
         unset($reader);
     }
-    private function ParsingSheet(&$spreadsheet,$indexPage){
+
+    private function ParsingSheet(&$spreadsheet, $indexPage)
+    {
         $indexPage = ($spreadsheet->getSheetCount() - 1 >= $indexPage) ? $indexPage : 0; // если не существует листа
         $data = $spreadsheet->setActiveSheetIndex($indexPage)->toArray("", false, false);
         if (is_array($data) && !empty($data)) {
@@ -51,7 +55,7 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
             foreach ($data as $row) {
                 $obj = $this->ParsingRowToModel($row);
                 $this->countRows++;
-                if ($maxRow != null && $i++ > $maxRow)
+                if ($this->_maxRow != null && $i++ > $this->_maxRow)
                     break;
                 if (empty($obj)) {
                     $this->countSkipRows++;
@@ -61,6 +65,19 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
             }
         }
         unset($data);
+    }
+
+    /** Проверка определенных элементов на пустые значения
+     * @param array $arr ссылка на проверяемы массив
+     * @param array $key массив индексов для проверки
+     * @return boolean
+     */
+    public function isEmptyArray(&$arr = array(), $key = array()): bool
+    {
+        foreach ($key as $k) {
+            if (empty($arr[$k])) return true;
+        }
+        return false;
     }
 
     abstract protected function ParsingRowToModel($arrayRow = array()): ?RowPBXModel;

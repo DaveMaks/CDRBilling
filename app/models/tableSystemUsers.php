@@ -28,7 +28,6 @@ class tableSystemUsers extends Model
     {
         $s = new Phalcon\Security();
         $this->password = $s->hash($str);
-        var_dump($this->password);
     }
 
     public function PasswordValidation($str): bool

@@ -168,7 +168,7 @@ class Import
                         tmp.filename,
                         tmp.coment,
                         IF (LENGTH(tmp.finalcalledpartynumber) < 8,null, 
-                        (SELECT pc.id FROM '.TABLE_PHONE_CODE.' as pc
+                        (SELECT pc.id FROM ' . TABLE_PHONE_CODE . ' as pc
                           WHERE tmp.finalcalledpartynumber REGEXP CONCAT(\'^\', pc.code, \'\')
                           ORDER BY LENGTH(pc.code) DESC
                           LIMIT 1))
@@ -210,7 +210,7 @@ class Import
     {
         $columnsNotNULL = array(4, 7, 8, 29, 30, 47, 55); //номер столбцов в файле cdr, обязательные для записи
         try {
-	    //echo count($row).' - ';
+            //echo count($row).' - ';
             if ((count($row) != 94) && (count($row) != 123) && (count($row) != 129))  // если в строке не 94 поля для версии cucm =7 и 123 поля для версии 9
                 throw  new Exception('Не верное колл. полей (пропущено) ' . $this->_currentRow . ' ' . $this->_currentFile);
 
@@ -239,13 +239,17 @@ class Import
         foreach ($columnsTrim as $a) {
             $row[$a] = trim($row[$a], '"');
         }
+
         $info = array();
+
+        // 29 - originalCalledPartyNumber - куда звонил
         // удаляем ведущие коды набора (08 0810) и тп на основе конфига
         $tmp = $this->UpdatePartyNumber($row[29]);
         if ($tmp != $row[29])
             $info['originalcalledpartynumber'] = $row[29];
         $row[29] = $tmp;
 
+        // 30 - finalCalledPartyNumber - куда попал
         $tmp = $this->UpdatePartyNumber($row[30]);
         if ($tmp != $row[30])
             $info['finalcalledpartynumber'] = $row[30];
@@ -302,6 +306,11 @@ class Import
                 $PartyNumber,
                 1);
         }
+        // если набран городской номер внутри города без кода, добавляем код города по умолчанию
+        if (isset($this->config->importcdr->countDefaultCode) && !empty($this->config->importcdr->countDefaultCode))
+            if (strlen($PartyNumber) == $this->config->importcdr->countDefaultCode)
+                $PartyNumber = $this->config->importcdr->defaultCode . '' . $PartyNumber;
+
         return $PartyNumber;
     }
 

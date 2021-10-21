@@ -16,6 +16,7 @@ use Phalcon\Mvc\Model\Transaction\Manager as TxManager;
 //use App\LDAP;
 
 use \App\PBX\ParsingPBXBilling;
+use Phalcon\Filter;
 
 class ConfigController extends Controller
 {
@@ -124,28 +125,39 @@ class ConfigController extends Controller
     {
         try {
             $act = $this->db->query(
-                'INSERT INTO '.TABLE_TBX.'(
+                'INSERT INTO ' . TABLE_TBX . '(
                         datetime, CalledNumber, direction, duration, tarif, cost, overinfo
                         )
                         SELECT tmpA.* FROM
-                        -- Некоторые операторы связидают тарификацию с детализацией по мин. складываем одинаковые звонки  
-                        (SELECT tmp.datetime,  tmp.CalledNumber,  tmp.direction,SUM(tmp.duration) AS duration,  tmp.tarif,  SUM(tmp.cost) AS cost,  tmp.overinfo
-                        FROM '.TABLE_TBX_MEMORY.' AS tmp
+                        -- Некоторые операторы связывают тарификацию с детализацией по мин. 
+                        -- складываем одинаковые звонки 
+                        -- !!!в течении минуты 
+                            (SELECT 
+                                tmp.datetime,  
+                                tmp.CalledNumber,  
+                                tmp.direction,
+                                SUM(tmp.duration) AS duration,  
+                                tmp.tarif,  
+                                SUM(tmp.cost) AS cost,  
+                                tmp.overinfo
+                            FROM ' . TABLE_TBX_MEMORY . ' AS tmp
                         GROUP BY CONCAT(tmp.datetime,CalledNumber) ) AS tmpA
                         LEFT JOIN
                         -- выкидываем записи которые уже есть в базе, исключая дубливоание
-                        '.TABLE_TBX.' main ON tmpA.datetime=main.datetime AND tmpA.CalledNumber=main.CalledNumber AND tmpA.duration=main.duration
+                        ' . TABLE_TBX . ' main ON 
+                            tmpA.datetime=main.datetime AND 
+                            tmpA.CalledNumber=main.CalledNumber AND 
+                            tmpA.duration=main.duration
                         WHERE main.id IS NULL');
+
             if ($act->execute()) {
                 $this->flash->success("Импорт выполнен успешно");
-            }
-            else
+            } else
                 throw new Exception(implode(', ', $act->getMessages()));
-            $act = $this->db->query('TRUNCATE '.TABLE_TBX_MEMORY.'');
+            $act = $this->db->query('TRUNCATE ' . TABLE_TBX_MEMORY . '');
             if ($act->execute()) {
                 $this->flash->success("Временная база отчищена..");
             }
-
 
         } catch (Exception $ex) {
             $this->flash->error("Возникла ошибка (" . $ex->getMessage() . ') ');
@@ -158,6 +170,44 @@ class ConfigController extends Controller
     public function SendImportToMainAction()
     {
 
+    }
+
+    public function UsersAction()
+    {
+        $this->view->setVar('ListUser', tableSystemUsers::find());
+
+    }
+
+    public function UserDelAction($id)
+    {
+        if ((int)$id > 0) {
+            $usr = tableSystemUsers::findFirst($id);
+            $usr->delete();
+        }
+        $this->response->redirect('Config/users/');
+    }
+
+    public function UserUpdatePasswordAction()
+    {
+        try {
+            $usrID = $this->request->getPost('userId', Filter::FILTER_INT, null);
+            $pwdStr = $this->request->getPost('NewPwd', Filter::FILTER_STRING, null);
+            if ($this->request->isAjax() &&
+                $this->request->isPost() &&
+                empty($usrID) &&
+                empty($pwdStr)
+            )
+                throw new Exception('Ошибочные данные');
+            $usr = tableSystemUsers::findFirstById($usrID);
+            if ($usr) {
+                $usr->setNewPassword($pwdStr);
+                $usr->save();
+            } else throw new Exception('Пользователь не найден ' . $usrID . ' ');
+        } catch (Exception $ex) {
+            $this->response->setStatusCode(501);
+            echo $ex->getMessage();
+        }
+        return false;
     }
 
     /**
@@ -203,4 +253,6 @@ class ConfigController extends Controller
         unset($FileData);
         return array($addRow, $countRows);
     }
+
+
 }
