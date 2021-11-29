@@ -73,7 +73,6 @@ $table = tablePBXMemory::find([
 
                         <?php else: ?>
                             <?php for ($p = 1; $p <= $countPage; $p++): ?>
-
                                 <li class="page-item <?= ($PageSelect == $p) ? 'active' : '' ?>"><a class="page-link"
                                                                                                     href="javascript:UIPageSelect(<?= $p ?>);"><?= $p ?></a>
                                 </li>
@@ -85,14 +84,15 @@ $table = tablePBXMemory::find([
                 <?php endif; ?>
             </div>
         </div>
-        <div class="col ">
+        <div class="col-auto">
             <div class="dataTables_info" role="status" aria-live="polite"> c <?= $rowInPage * ($PageSelect - 1); ?>
                 по <?= min($rowInPage * ($PageSelect - 1) + $rowInPage, $CountRow); ?>
                 из <?= $CountRow ?> записей
             </div>
         </div>
-        <div class="col clearfix">
-            <button type="button" class="btn btn-primary  float-right" id="btnImport" onclick="javascript:btnImportClick();">Импортировать</button>
+        <div class="col-4 text-right">
+            <button type="button" class="btn btn-success btn-sm" id="btnImport" onclick="javascript:btnImportClick();"><i class="fas fa-file-import"></i>Импортировать</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" id="btnShowError" onclick="javascript:showErrorLog();"><i class="fas fa-bug"></i> Ошибки</button>
         </div>
     </div>
     <div class="row">

@@ -24,13 +24,13 @@ class ImportTask extends Task
 
     public function mainAction()
     {
-        echo '--------------------------------'."\n\r";
-        echo '   remoteCMR - Удалить лишний мусор *.CMR'."\n\r";
-        echo '   cdr [folder] [format] - Импорт cdr файлов, по умолчанию данные берутся из конфига, можно указать доп. параметры'."\n\r";
-        echo '                           folder - папка где искать файлы'."\n\r";
-        echo '                           format - регулярное выражение для выборки фалов'."\n\r";
-        echo '   ActiveDirectory-импорт и синхранизация справочника пользователя из AD'."\n\r";
-        echo '--------------------------------'."\n\r";
+        echo '--------------------------------' . "\n\r";
+        echo '   remoteCMR - Удалить лишний мусор *.CMR' . "\n\r";
+        echo '   cdr [folder] [format] - Импорт cdr файлов, по умолчанию данные берутся из конфига, можно указать доп. параметры' . "\n\r";
+        echo '                           folder - папка где искать файлы' . "\n\r";
+        echo '                           format - регулярное выражение для выборки фалов' . "\n\r";
+        echo '   ActiveDirectory-импорт и синхранизация справочника пользователя из AD' . "\n\r";
+        echo '--------------------------------' . "\n\r";
 
     }
 
@@ -118,7 +118,7 @@ class ImportTask extends Task
     }
 
     /** Синхранизация справочника с AD
-    */
+     */
     public function ActiveDirectoryAction()
     {
         try {
@@ -135,4 +135,75 @@ class ImportTask extends Task
             echo $ex->getMessage();
         }
     }
+
+    public function ActiveDirectoryTestAction()
+    {
+        try {
+            $dc1 = new LDAP(
+                $this->config->ActiveDirectory->host,
+                $this->config->ActiveDirectory->user,
+                $this->config->ActiveDirectory->password,
+                $this->config->ActiveDirectory->toArray()
+            );
+            $this->CreateTreeUserFormAD($dc1, $this->config->ActiveDirectory->baseDN);
+
+
+            ///var_dump($dc1);
+            //$dc1->ImportToDB(true, true);
+            // $listOU=$dc1->Search("(&(objectCategory=organizationalUnit)(name=*))",
+            //  array('name','ou','description'),true);
+
+            /*$lstWorker = $dc1->getUsersFromDN($this->config->ActiveDirectory->baseDN,
+                $this->config->ActiveDirectory->filterUser,
+                array('displayname', 'description', $this->config->ActiveDirectory->ipPhone, 'title', 'department', 'mail', 'objectguid'));
+
+            var_dump($lstWorker);*/
+            //$this->SaveTreeADUnits($dc1, 0,$this->config->ActiveDirectory->baseDN);
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
+
+    public function CreateTreeUserFormAD(&$dc1, $DN)
+    {
+        static $i = 0;
+        $i++;
+        $lstUnit = $dc1->getOUFromDN($DN,
+            $dc1->config['filterOU'],
+            array('name', 'description', 'distinguishedname', 'objectguid'));
+        if (empty($lstUnit)) {
+            $i--;
+            return;
+        }
+        foreach ($lstUnit as $item) {
+            echo str_repeat("--", $i) . $item["name"] . "    \t" . $item["description"] . "\n";
+            $listWorker = $lstUnit = $dc1->getUsersFromDN($item['distinguishedname'],
+                $dc1->config['filterUser'],
+                array('displayname', 'description', $dc1->config['ipPhone'], 'title', 'department', 'mail', 'objectguid'));
+            $this->CreateTreeUserFormAD($dc1, $item['distinguishedname']);
+            echo str_repeat("  ", $i) . "samaccountname" . " \t" .
+                "displayname" . "      \t" .
+                $dc1->config['ipPhone'] . "   \t" .
+                "description" . "   \t" .
+                "title" . "   \t" .
+                "department" . "   \t". "\n";
+            if (empty($listWorker))
+                continue;
+            foreach ($listWorker as $Workeritem) {
+                echo str_repeat("  ", $i) . $Workeritem["samaccountname"] . " \t" .
+                    $Workeritem["displayname"] . "      \t" .
+                    $Workeritem[$dc1->config['ipPhone']] . "   \t" .
+                    $Workeritem["description"] . "   \t" .
+                    $Workeritem["title"] . "   \t" .
+                    $Workeritem["department"] . "   \t"
+                    . "\n";
+                //var_dump($listWorker);
+            }
+
+            //var_dump($item);
+        }
+        $i--;
+    }
+
+
 }

@@ -27,6 +27,40 @@ let DataTableLanguageRU={
         }
     }
 };
+let daterangepickerLocale={
+    "format": "DD.MM.YYYY",
+    "separator": "-",
+    "applyLabel": "Применить",
+    "cancelLabel": "Отменить",
+    "fromLabel": "с",
+    "toLabel": "по",
+    "customRangeLabel": "Другое",
+    "weekLabel": "Мес",
+    "daysOfWeek": [
+        "Вс",
+        "Пн",
+        "Вт",
+        "Ср",
+        "Чт",
+        "Пт",
+        "Сб",
+    ],
+    "monthNames": [
+        "Январь",
+        "Февраль",
+        "Март",
+        "Апрель",
+        "Май",
+        "Июнь",
+        "Июль",
+        "Август",
+        "Сентябрь",
+        "Октябрь",
+        "Ноябрь",
+        "Декабрь"
+    ],
+    "firstDay": 1
+};
 
 function GetSelectData() {
     try {

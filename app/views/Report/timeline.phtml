@@ -108,8 +108,7 @@
 </section>
 <script>
 
-    var ActivSelectDay = moment();
-    var ActivUnitID=0;
+    let ActivUnitID=0;
 
     function ShowTableUserTimeLine(id) {
         // var period = 0;
@@ -119,58 +118,6 @@
         });
         ActivUnitID=id;
     }
-
-
-    $('#SelectDay').daterangepicker({
-            singleDatePicker: true,
-            startDate: ActivSelectDay,
-            autoApply: true,
-            opens: "center",
-            showDropdowns: true,
-            locale: {
-                "format": "DD.MM.YYYY",
-                "separator": "-",
-                "applyLabel": "Применить",
-                "cancelLabel": "Отменить",
-                "fromLabel": "с",
-                "toLabel": "по",
-                "customRangeLabel": "Другое",
-                "weekLabel": "Мес",
-                "daysOfWeek": [
-                    "Вс",
-                    "Пн",
-                    "Вт",
-                    "Ср",
-                    "Чт",
-                    "Пт",
-                    "Сб",
-
-                ],
-                "monthNames": [
-                    "Январь",
-                    "Февраль",
-                    "Март",
-                    "Апрель",
-                    "Май",
-                    "Июнь",
-                    "Июль",
-                    "Август",
-                    "Сентябрь",
-                    "Октябрь",
-                    "Ноябрь",
-                    "Декабрь"
-                ],
-                "firstDay": 1
-            },
-        },
-        function (start, end, label) {
-            $('#SelectDayValue').html(start.format('YYYY-MM-DD'));
-            ActivSelectDay = start;
-            ShowTableUserTimeLine(ActivUnitID);
-        });
-
-    $('#SelectDayValue').html(ActivSelectDay.format('YYYY-MM-DD'));
-
     $(document).ready(function () {
         $("#UnitsTree").fancytree({
             //icon: true,
@@ -220,5 +167,21 @@
                 }
         },*/
         });
+
+        $('#SelectDay').daterangepicker({
+                singleDatePicker: true,
+                startDate: ActivSelectDay,
+                autoApply: true,
+                opens: "center",
+                showDropdowns: true,
+                locale: daterangepickerLocale,
+            },
+            function (start, end, label) {
+                $('#SelectDayValue').html(start.format('YYYY-MM-DD'));
+                ActivSelectDay = start;
+                ShowTableUserTimeLine(ActivUnitID);
+            });
+
+        $('#SelectDayValue').html(ActivSelectDay.format('YYYY-MM-DD'));
     });
 </script>

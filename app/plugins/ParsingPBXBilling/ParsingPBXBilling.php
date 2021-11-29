@@ -15,11 +15,12 @@ class ParsingPBXBilling
     const TypeKcell = 'Kcell';
     const TypeKaztelecom = 'Kaztelecom';
     const TypeKaztelecomV2 = 'Kaztelecom_Ver2';
-
+    const TypeKaztelecomCity = 'Kaztelecom_City';
     public static $listType = [
         self::TypeKcell,
         self::TypeKaztelecom,
-        self::TypeKaztelecomV2
+        self::TypeKaztelecomV2,
+        self::TypeKaztelecomCity
     ];
 
     private $filePath = null;
@@ -38,12 +39,15 @@ class ParsingPBXBilling
             case self::TypeKaztelecomV2:
                 $this->dataclass = FormatImportKazTelecomV2::class;
                 break;
+            case self::TypeKaztelecomCity:
+                $this->dataclass = FormatImportKazTelecomCity::class;
+                break;
         }
-
     }
 
     /**
      * Плучаем массив RowPBXModel;
+     * @return null|App\PBX\RowPBXModel[]
      */
     public function getData()
     {

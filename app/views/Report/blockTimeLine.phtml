@@ -1,24 +1,12 @@
 <?php
 
-//var_dump($this->view->values);
-
-//["timeconect"]=> int(1603164710) ["duration"]=> int(28) ["A"]=> int(1)
 if (empty($this->view->values))
     return;
-/*
-$arrCalls = array();
-foreach ($this->view->values as $key => $row) {
-    //$arrCalls[$row['hour']][] = $row;
-}*/
-//var_dump($arrCalls);
 
 $dayTime = mktime(0, 0, 1,
     (int)date("m", $this->view->values[0]['timeconnect']),
     (int)date("d", $this->view->values[0]['timeconnect']),
     (int)date("Y", $this->view->values[0]['timeconnect']));
-/*$timeStart = mktime(0, 0, 0, date("m", $stime), date("d", $stime), date("Y", $stime));
-$timeEnd = mktime(23, 59, 59, date("m", $stime), date("d", $stime), date("Y", $stime));*/
-
 
 $workHour = [
     9, 10, 11, 12, 15, 16, 17, 18
@@ -30,7 +18,6 @@ $hourStart = 8;
 $hourEnd = 20;
 //preserveAspectRatio="none">
 ?>
-
 
 <?php
 $svgHead = $svgRow = '';
@@ -68,14 +55,10 @@ for ($i = $hourStart; $i <= $hourEnd; $i++): // строим сетку часо
             $deffSec = $dayTime + ($hourStart * 3600); //получили кол. сек до начала шкалы
             $kofColl = (double)$widthBlock / 3600;// получаем коффицент для одной сек.в ячейке
             ?>
-            <!--
-        <?php
-            var_dump($row); ?>
-        -->
-            <rect class="calltimeline-Call <?=($row['direction']==1)?'calltimeline-in':'calltimeline-out'?>"
-                    width='<?= (int)ceil($row['duration'] * $kofColl) ?>' height='30'
+            <rect class="calltimeline-Call <?= ($row['direction'] == 1) ? 'calltimeline-in' : 'calltimeline-out' ?>"
+                  width='<?= (int)ceil($row['duration'] * $kofColl) ?>' height='30'
                   x='<?= (int)($kofColl * ($row['timeconnect'] - $deffSec)) ?>' y='<?= $heightHead ?>'
-                  />
+            />
         <?php endforeach; ?>
     </g>
 </svg>

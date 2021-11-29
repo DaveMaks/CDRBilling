@@ -12,6 +12,8 @@ define('TABLE_USERS', 'tb_users');
 define('TABLE_SYSTEM_USERS', 'tb_systemUser');
 define('TABLE_TBX', 'tb_BillingFromPBX');
 define('TABLE_TBX_MEMORY', 'tb_BillingFromPBXTemp');
+define('TABLE_TBX_ERROR', 'tb_BillingFromPBXError');
+
 define('TABLE_MENU', 'tb_menu');
 
 /*AD*/

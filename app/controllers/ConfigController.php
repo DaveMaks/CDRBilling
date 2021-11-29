@@ -38,6 +38,7 @@ class ConfigController extends Controller
      */
     public function ImportFormAction()
     {
+        $this->assets->addJs('js/ReportLib.js');
         if (!$this->session->has('DefVal_TypeParsingFormat'))
             $this->session->set('DefVal_TypeParsingFormat', 0);
         try {
@@ -93,8 +94,8 @@ class ConfigController extends Controller
                     // создаем объект для парсинга
                     $prasing = new ParsingPBXBilling($fileToArchive, ParsingPBXBilling::$listType[(int)$this->request->getPost('TypeParsingFormat')]);
                     // отправляем в импорт, должен вернутся массив из коллическва добавленных и всего строк в файле
-                    list($newrow, $countrow) = $this->ImportPBXDataToTempDB($prasing);
-                    $this->flash->success("Добавленно $newrow из $countrow");
+                    list($newrow, $countrow, $SumCost) = $this->ImportPBXDataToTempDB($prasing);
+                    $this->flash->success("Добавленно $newrow из $countrow на сумму $SumCost тг.");
                 }
                 $this->response->redirect($this->url->get(
                     $this->dispatcher->getControllerName() . '/' . $this->dispatcher->getActionName())); // избавляемся от предупреждения браузера при попытке обновить стр. "отправить форму заново"
@@ -106,6 +107,58 @@ class ConfigController extends Controller
         }
         $this->view->setVar('DefVal_TypeParsingFormat', $this->session->get('DefVal_TypeParsingFormat'));
     }
+    public function ShowErrorTableAction(){
+        $this->view->disable();
+        $log = tablePBXError::find();
+        $html='Нет данных...';
+        if (!empty($log)) {
+            $html='';
+            foreach ($log as $row) {
+                $html.='<div class="callout callout-danger">';
+                $html.='<p>'.$row->message . '</p>';
+                $html.='</div>';
+            }
+            $html.='';
+        }
+        return $html;
+    }
+
+    public function DeletePBXAction($dateStart = null, $dateEnd = null)
+    {
+        $this->view->disable();
+        $this->response->setContentType('application/json', 'UTF-8');
+        $ret = [
+            'errorMsg' => null,
+            'data' => null
+        ];
+        try {
+            if (empty($dateStart) || empty($dateEnd)) {
+                throw new Exception('Не верные данные периода');
+            }
+            /// проверка на слишком большой диапазон и дату меньше 2х лет
+            if ((($dateEnd - $dateStart) > 5184000) || $dateStart < (time() - 63072000))
+                throw new Exception('Слижком большой диапазон');
+            $tmpPBX = tablePBX::find([
+                    'conditions' => 'datetime>?1 AND datetime<=?2',
+                    'bind' =>
+                        [1 => $dateStart,
+                            2 => $dateEnd],
+                    'bindTypes' => [
+                        Phalcon\Db\Column::BIND_PARAM_INT,
+                        Phalcon\Db\Column::BIND_PARAM_INT
+                    ]
+                ]
+            );
+            if ($tmpPBX->count() < 1)
+                throw new Exception('Нет данных для удаления');
+            if ($tmpPBX->delete())
+                $ret['data'] = 'Успешно удалено ' . $tmpPBX->count() . ' записей, за период с ' . date("Y.m.d", $dateStart) . ' по ' . date("Y.m.d", $dateEnd) . '.';
+        } catch (Exception $exception) {
+            $ret['errorMsg'] = $exception->getMessage();
+        }
+        return json_encode($ret, JSON_FORCE_OBJECT);
+    }
+
 
     /**
      * Вывод таблицы
@@ -175,7 +228,6 @@ class ConfigController extends Controller
     public function UsersAction()
     {
         $this->view->setVar('ListUser', tableSystemUsers::find());
-
     }
 
     public function UserDelAction($id)
@@ -223,13 +275,17 @@ class ConfigController extends Controller
          * @var $FileData \App\PBX\RowPBXModel[]
          */
         $FileData = null;
-        if (isset($parsingPBXBilling))
+        if (isset($parsingPBXBilling)) {
+            (new tablePBXError())->TruncateTable();
             $FileData = $parsingPBXBilling->getData();
+        }
         if (count($FileData) == 0)
             throw new Exception("Файл для импотра пустой или не соответсвтует шаблону импорта");
-        $addRow = 0;
-        if ($clearTable) // почистить базу truncate
+        $addRow = $SumCost = 0;
+        if ($clearTable) { // почистить Временные таблицы truncate
             (new tablePBXMemory())->TruncateTable();
+        }
+
         $manager = new TxManager(); // создаем объект менеджер транзакций, для записи разом.
         $transaction = $manager->get();
         foreach ($FileData as $row) {
@@ -242,6 +298,7 @@ class ConfigController extends Controller
             $tablePBX->tarif = $row->tarif;
             $tablePBX->cost = $row->cost;
             $tablePBX->overinfo = $row->overinfo;
+            $SumCost += (float)$row->cost;
             if (!$tablePBX->save()) {
                 throw new Exception("Ошибка записи в базу, строка: " . $addRow . ' (' .
                     implode(', ', $tablePBX->getMessages()) . ') ' . ' Поля: (' . implode(', ', $tablePBX->toArray()) . ')');
@@ -251,7 +308,7 @@ class ConfigController extends Controller
         $transaction->commit(); // Выполняем транзакции
         $countRows = $FileData->countRows;
         unset($FileData);
-        return array($addRow, $countRows);
+        return array($addRow, $countRows, $SumCost);
     }
 
 

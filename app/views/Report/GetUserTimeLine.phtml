@@ -14,7 +14,7 @@
              */
             ?>
             <tr>
-                <td nowrap=""><?= $user->fullName; ?> <span class="badge bg-success"><?= $user->tel; ?></span></td>
+                <td nowrap=""><?= $user->fullName.' '. ((!empty($user->description))?'('.$user->description.')':''); ?> <span class="badge bg-success"><?= $user->tel; ?></span></td>
                 <!--<td></td>-->
             </tr>
             <tr>

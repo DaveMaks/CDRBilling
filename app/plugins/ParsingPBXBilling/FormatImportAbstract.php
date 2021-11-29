@@ -14,6 +14,7 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
 {
     private $table = array();
     public $countRows = 0;
+    public $SumCost=0;
     public $countSkipRows = 0;
     public $curentPage = 0;
     private $_maxRow=null;
@@ -38,9 +39,9 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
             $reader->setInputEncoding('CP1252');
         $spreadsheet = $reader->load($inputFileName);
         $indexPage = (is_array($indexPage) && count($indexPage) > 0) ? $indexPage : array($indexPage);
-        foreach ($indexPage as $curentPage) {
-            $this->curentPage = $curentPage;
-            $this->ParsingSheet($spreadsheet, $curentPage);
+        foreach ($indexPage as $currentPage) {
+            $this->curentPage = $currentPage;
+            $this->ParsingSheet($spreadsheet, $currentPage);
         }
         unset($spreadsheet);
         unset($reader);
@@ -65,6 +66,12 @@ abstract class FormatImportAbstract implements \Iterator, \Countable
             }
         }
         unset($data);
+    }
+
+    public function SaveErrorLog($message){
+        $error=new \tablePBXError();
+        $error->message='Лист:'.$this->curentPage.' Строка:'.$this->countRows.' '.$message;
+        $error->save();
     }
 
     /** Проверка определенных элементов на пустые значения

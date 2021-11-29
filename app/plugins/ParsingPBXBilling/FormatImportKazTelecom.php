@@ -13,6 +13,9 @@ class FormatImportKazTelecom extends FormatImportAbstract
 {
     protected function ParsingRowToModel($param = array()): ?RowPBXModel
     {
+        ///TODO разнести все проверки с логированием
+        ///   $this->SaveErrorLog('Пустые столбцы 0, 1, 2, 5, 6, 7:' .
+        //                print_r($param, true));
         if (empty($param[0]) ||
             empty($param[1]) ||
             empty($param[2]) ||

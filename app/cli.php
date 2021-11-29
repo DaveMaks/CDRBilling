@@ -9,7 +9,6 @@ use Phalcon\Config\Adapter\Php;
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-
 define('BASE_PATH', dirname(__DIR__));
 define('APP_PATH', BASE_PATH . '/app');
 include_once APP_PATH . '/config/defines.php';
@@ -35,7 +34,6 @@ $loader->registerNamespaces(
     ]
 );
 
-
 $loader->register();
 
 $di->set(
@@ -46,7 +44,6 @@ $di->set(
         );
     }
 );
-
 
 $di->setShared(
     'config',
@@ -64,16 +61,14 @@ $di->setShared(
 $console = new ConsoleApp();
 $console->setDI($di);
 $arguments = [];
-if (!empty($argv) && count($argv)>0){
-	foreach ($argv as $k => $arg) {
-		if ($k === 1) {
-			$arguments['task'] = $arg;
-		} elseif ($k === 2) {
-			$arguments['action'] = $arg;
-		} elseif ($k >= 3) {
-			$arguments['params'][] = $arg;
-		}
-	}
+foreach ($argv as $k => $arg) {
+    if ($k === 1) {
+        $arguments['task'] = $arg;
+    } elseif ($k === 2) {
+        $arguments['action'] = $arg;
+    } elseif ($k >= 3) {
+        $arguments['params'][] = $arg;
+    }
 }
 
 try {
@@ -82,17 +77,3 @@ try {
 } catch (Exception $e) {
     echo $e->getTraceAsString();
 }
-
-/*
-
-catch (\Phalcon\Exception $e) {
-    //fwrite(STDERR, $e->getMessage() . PHP_EOL);
-    exit(1);
-} catch (\Throwable $throwable) {
-    //fwrite(STDERR, $throwable->getMessage() . PHP_EOL);
-    exit(1);
-} catch (\Exception $exception) {
-    //fwrite(STDERR, $exception->getMessage() . PHP_EOL);
-    exit(1);
-}
-*/

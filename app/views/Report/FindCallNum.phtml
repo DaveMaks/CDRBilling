@@ -135,7 +135,7 @@
                                 <div class="col">
                                     <div class="alert alert-danger" style="display: none;"></div>
                                     <div id="ReportTable-box">
-                                        <table id="tblSearchReport" class="display" style="width:100%">
+                                        <table id="tblSearchReport" class="display dataTable" style="width:100%">
                                             <thead>
                                             <tr>
                                                 <th>ID</th>
@@ -152,7 +152,6 @@
                                                 <th>ID вх. устройства</th>
                                             </tr>
                                             </thead>
-
                                             <tfoot>
                                             <tr>
                                                 <th>ID</th>
@@ -219,7 +218,6 @@
                     "txtSearchIn": $('#txtSearchIn').val(),
                     "swOperation": $('#swOperation').val(),
                 }
-
             },
             /*   "initComplete": function (settings, json) {
                    $("#ReportTable-box").show();
@@ -231,15 +229,17 @@
                 {data: 'calling'},
                 {
                     data: function (row, type, set) {
+
                         return ((row["callingusr_fullName"] !== null) ? row["callingusr_fullName"] : "") +
-                            ((row["callingusr_title"] !== null) ? " (" + row["callingusr_title"] + ")" : "");
+                            ((row["callingusr_title"] !== null && (row["callingusr_title"] != '')) ? " (" + row["callingusr_title"] + ")" : "");
                     }
                 },
                 {data: 'called'},
                 {
                     data: function (row, type, set) {
+                        console.log(row["calledusr_title"]);
                         return ((row["calledusr_fullName"] !== null) ? row["calledusr_fullName"] : "") +
-                            ((row["calledusr_title"] !== null) ? " (" + row["calledusr_title"] + ")" : "");
+                            (((row["calledusr_title"] !== null) && (row["calledusr_title"] != '')) ? " (" + row["calledusr_title"] + ")" : "");
                     }
                 },
                 {data: 'cdrduration'},
@@ -266,40 +266,7 @@
                 autoApply: true,
                 opens: "left",
                 showDropdowns: true,
-                locale: {
-                    "format": "DD.MM.YYYY",
-                    "separator": "-",
-                    "applyLabel": "Применить",
-                    "cancelLabel": "Отменить",
-                    "fromLabel": "с",
-                    "toLabel": "по",
-                    "customRangeLabel": "Другое",
-                    "weekLabel": "Мес",
-                    "daysOfWeek": [
-                        "Вс",
-                        "Пн",
-                        "Вт",
-                        "Ср",
-                        "Чт",
-                        "Пт",
-                        "Сб",
-                    ],
-                    "monthNames": [
-                        "Январь",
-                        "Февраль",
-                        "Март",
-                        "Апрель",
-                        "Май",
-                        "Июнь",
-                        "Июль",
-                        "Август",
-                        "Сентябрь",
-                        "Октябрь",
-                        "Ноябрь",
-                        "Декабрь"
-                    ],
-                    "firstDay": 1
-                },
+                locale: daterangepickerLocale,
             },
             function (start, end, label) {
             });

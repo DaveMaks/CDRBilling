@@ -47,7 +47,8 @@
                                 <?php endforeach; ?>
                             </select>
                             <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="FilePBXToImport" accept=".xls,.xlsx,*.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                                <input type="file" class="custom-file-input" id="FilePBXToImport"
+                                       accept=".xls,.xlsx,.csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                                        name="FilePBXToImport">
                                 <label class="custom-file-label" for="FilePBXToImport">Выберите файл размером не более
                                     20Мб и типом *.xls, .xlsx, *.csv</label>
@@ -65,16 +66,87 @@
     </div>
     <div class="row m-2">
         <div class="col">
+            <div class="card collapsed-card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-trash-alt"></i> Отчистить за период</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info" id="boxDeleteMsg" style="display: none;">
+                    </div>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label>Период:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                                class="far fa-calendar-alt"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control float-right" id="txtDataRange">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label></label>
+                                    <button type="button" class="btn btn-danger" id="btnDeletePBX">Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted fw-light">*Позволяет удалить ранее импортированные данные за период
+                        БЕЗВОЗВРАТНО</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row m-2">
+        <div class="col">
             <?php echo $this->getContent(); ?>
         </div>
     </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="modalViewErrorImport" tabindex="-1" role="dialog"
+     aria-labelledby="XXXXX" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="">Ошибочные строки при импорте</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Загрузка....
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
+    function showErrorLog(){
+        $('#modalViewErrorImport .modal-body').html('');
+        $('#modalViewErrorImport').modal('show');
+        $('#modalViewErrorImport .modal-body').load("<?=$this->url->get('Config/ShowErrorTable/')?>");
+    }
+
     function UILoadTableBoxs(idPage) {
         $('#BoxTable').html('<div class="text-center p-2"><i class="fas fa-circle-notch fa-spin text-muted "></i></div>');
         $('#BoxTable').load("<?=$this->url->get(
-                $this->dispatcher->getControllerName() . '/ViewImportTable/');?>" + idPage);
+            $this->dispatcher->getControllerName() . '/ViewImportTable/');?>" + idPage);
     }
+
     function UIPageSelect(pageid) {
         UILoadTableBoxs(pageid);
     }
@@ -85,12 +157,55 @@
             $this->dispatcher->getControllerName() . '/MoveDataImport');?>");
     }
 
+    function StatusLoadDeleteAct(obj, status) {
+        if (status == true) {
+            $(obj).prop('disabled', true);
+            $('#boxDeleteMsg').hide();
+            $('#boxDeleteMsg').html('');
+        } else
+            $(obj).prop('disabled', false);
+    }
+
     $(document).ready(function () {
         UILoadTableBoxs(1);
         $('input[type=file]').change(function () {
             // select the form and submit
             $('#BoxTable').html('<p class="text-center"><i class="fas fa-2x fa-sync-alt fa-spin text-secondary"></i></p>');
             $('#importFile').submit();
+        });
+        $('#txtDataRange').daterangepicker({
+                //singleDatePicker: true,
+                startDate: ActivSelectDay,
+                autoApply: true,
+                opens: "up",
+                showDropdowns: true,
+                locale: daterangepickerLocale,
+            },
+            function (start, end, label) {
+            });
+        $('#btnDeletePBX').on('click', function () {
+            StatusLoadDeleteAct(this, true)
+            let dateRange = GetSelectData();
+            if (dateRange == null) {
+                StatusLoadDeleteAct(this, false)
+                return;
+            }
+            $.getJSON("<?=$this->url->get('Config/DeletePBX/')?>" + dateRange.Start + "/" + dateRange.End,
+                function (json) {
+                    if (json.errorMsg != null) {
+                        $('#boxDeleteMsg').text('Ошибка выполнения: ' + json.errorMsg);
+                        $('#boxDeleteMsg').show();
+                    } else {
+                        $('#boxDeleteMsg').text('' + json.data);
+                        $('#boxDeleteMsg').show();
+                    }
+                    StatusLoadDeleteAct($('#btnDeletePBX'), false)
+                }
+            ).fail(function (err, textStatus, error) {
+                $('#boxDeleteMsg').text('Ошибка выполнения :' + textStatus);
+                $('#boxDeleteMsg').show();
+                StatusLoadDeleteAct($('#btnDeletePBX'), false)
+            });
         });
     });
 

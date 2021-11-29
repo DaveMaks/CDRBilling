@@ -1,30 +1,17 @@
 ﻿-- 
--- Disable foreign keys
--- 
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-
--- 
--- Set SQL mode
--- 
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-
--- 
 -- Set character set the client will use to send SQL statements to the server
 --
 SET NAMES 'utf8';
 
-CREATE DATABASE cucmdb
-CHARACTER SET utf8
-COLLATE utf8_general_ci;
 --
 -- Set default database
 --
 USE cucmdb;
 
 --
--- Create table `tb_phonecode`
+-- Create table `tb_phoneCode`
 --
-CREATE TABLE tb_phonecode (
+CREATE TABLE tb_phoneCode (
   id int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   name varchar(250) NOT NULL,
   code int(5) UNSIGNED NOT NULL,
@@ -32,15 +19,13 @@ CREATE TABLE tb_phonecode (
   PRIMARY KEY (id)
 )
 ENGINE = INNODB,
-AUTO_INCREMENT = 587,
-AVG_ROW_LENGTH = 126,
 CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
 --
--- Create table `tb_billingfrompbx`
+-- Create table `tb_BillingFromPBX`
 --
-CREATE TABLE tb_billingfrompbx (
+CREATE TABLE tb_BillingFromPBX (
   id int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   datetime int(11) UNSIGNED NOT NULL COMMENT 'Дата вызова',
   CalledNumber varchar(255) NOT NULL COMMENT 'Номер Вызываемого Абонента ',
@@ -56,33 +41,33 @@ CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
 --
--- Create index `IDX_tb_BillingFromPBX_CalledNu` on table `tb_billingfrompbx`
+-- Create index `IDX_tb_BillingFromPBX_CalledNu` on table `tb_BillingFromPBX`
 --
-ALTER TABLE tb_billingfrompbx
+ALTER TABLE tb_BillingFromPBX
 ADD INDEX IDX_tb_BillingFromPBX_CalledNu (CalledNumber);
 
 --
--- Create index `IDX_tb_BillingFromPBX_datetime` on table `tb_billingfrompbx`
+-- Create index `IDX_tb_BillingFromPBX_datetime` on table `tb_BillingFromPBX`
 --
-ALTER TABLE tb_billingfrompbx
+ALTER TABLE tb_BillingFromPBX
 ADD INDEX IDX_tb_BillingFromPBX_datetime (datetime);
 
 --
--- Create index `IDX_tb_BillingFromPBX_duration` on table `tb_billingfrompbx`
+-- Create index `IDX_tb_BillingFromPBX_duration` on table `tb_BillingFromPBX`
 --
-ALTER TABLE tb_billingfrompbx
+ALTER TABLE tb_BillingFromPBX
 ADD INDEX IDX_tb_BillingFromPBX_duration (duration);
 
 --
--- Create index `UK_tb_BillingFromPBX` on table `tb_billingfrompbx`
+-- Create index `UK_tb_BillingFromPBX` on table `tb_BillingFromPBX`
 --
-ALTER TABLE tb_billingfrompbx
+ALTER TABLE tb_BillingFromPBX
 ADD UNIQUE INDEX UK_tb_BillingFromPBX (datetime, CalledNumber, duration);
 
 --
--- Create table `tb_cdr`
+-- Create table `tb_CDR`
 --
-CREATE TABLE tb_cdr (
+CREATE TABLE tb_CDR (
   pkid varchar(38) DEFAULT NULL,
   globalcallid_callmanagerid int(11) UNSIGNED DEFAULT NULL,
   globalcallid_callid int(11) UNSIGNED DEFAULT NULL,
@@ -107,51 +92,50 @@ CREATE TABLE tb_cdr (
   PRIMARY KEY (id)
 )
 ENGINE = INNODB,
-AVG_ROW_LENGTH = 614,
 CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
 --
--- Create index `IDX_tb_CDR_callingpartynumber` on table `tb_cdr`
+-- Create index `IDX_tb_CDR_callingpartynumber` on table `tb_CDR`
 --
-ALTER TABLE tb_cdr
+ALTER TABLE tb_CDR
 ADD INDEX IDX_tb_CDR_callingpartynumber (callingpartynumber);
 
 --
--- Create index `IDX_tb_CDR_duration` on table `tb_cdr`
+-- Create index `IDX_tb_CDR_duration` on table `tb_CDR`
 --
-ALTER TABLE tb_cdr
+ALTER TABLE tb_CDR
 ADD INDEX IDX_tb_CDR_duration (duration);
 
 --
--- Create index `IDX_tb_CDR_finalcalledpartynumber` on table `tb_cdr`
+-- Create index `IDX_tb_CDR_finalcalledpartynumber` on table `tb_CDR`
 --
-ALTER TABLE tb_cdr
+ALTER TABLE tb_CDR
 ADD INDEX IDX_tb_CDR_finalcalledpartynumber (finalcalledpartynumber);
 
 --
--- Create index `IDX_tb_CDR_originalcalledpartynumber` on table `tb_cdr`
+-- Create index `IDX_tb_CDR_originalcalledpartynumber` on table `tb_CDR`
 --
-ALTER TABLE tb_cdr
+ALTER TABLE tb_CDR
 ADD INDEX IDX_tb_CDR_originalcalledpartynumber (originalcalledpartynumber);
 
 --
--- Create index `IDX_tb_CDR_pkid` on table `tb_cdr`
+-- Create index `IDX_tb_CDR_pkid` on table `tb_CDR`
 --
-ALTER TABLE tb_cdr
+ALTER TABLE tb_CDR
 ADD INDEX IDX_tb_CDR_pkid (pkid);
 
 --
--- Create index `UK_tb_CDR` on table `tb_cdr`
+-- Create index `UK_tb_CDR` on table `tb_CDR`
 --
-ALTER TABLE tb_cdr
+ALTER TABLE tb_CDR
 ADD UNIQUE INDEX UK_tb_CDR (pkid, finalcalledpartynumber, duration, datetimeconnect);
 
 --
 -- Create view `vv_pbx2cdr`
 --
 CREATE
-SQL SECURITY INVOKER
+DEFINER = 'cucm'@'%'
 VIEW vv_pbx2cdr
 AS
 SELECT
@@ -179,25 +163,25 @@ SELECT
   `code`.`name` AS `name`,
   `code`.`code` AS `code`,
   `code`.`symb` AS `symb`
-FROM (((SELECT
-    `tablepbx`.`id` AS `id`,
-    `tablepbx`.`datetime` AS `datetime`,
-    `tablepbx`.`CalledNumber` AS `CalledNumber`,
-    `tablepbx`.`direction` AS `direction`,
-    `tablepbx`.`duration` AS `duration`,
-    `tablepbx`.`tarif` AS `tarif`,
-    `tablepbx`.`cost` AS `cost`,
-    `tablepbx`.`overinfo` AS `overinfo`,
-    (SELECT
-        `cdr`.`id`
-      FROM `cucmdb`.`tb_cdr` `cdr`
-      WHERE OCTET_LENGTH(`cdr`.`finalcalledpartynumber`) > 6
-      AND `cdr`.`datetimeconnect` BETWEEN `tablepbx`.`datetime` - 120 AND `tablepbx`.`datetime` + 120
-      AND `cdr`.`finalcalledpartynumber` = `tablepbx`.`CalledNumber` LIMIT 1) AS `cdrID`
-  FROM `cucmdb`.`tb_billingfrompbx` `tablepbx`) `pbx`
-  LEFT JOIN `cucmdb`.`tb_cdr` `cdr`
+FROM ((((SELECT
+      `tablePBX`.`id` AS `id`,
+      `tablePBX`.`datetime` AS `datetime`,
+      `tablePBX`.`CalledNumber` AS `CalledNumber`,
+      `tablePBX`.`direction` AS `direction`,
+      `tablePBX`.`duration` AS `duration`,
+      `tablePBX`.`tarif` AS `tarif`,
+      `tablePBX`.`cost` AS `cost`,
+      `tablePBX`.`overinfo` AS `overinfo`,
+      (SELECT
+          `cdr`.`id`
+        FROM `cucmdb`.`tb_CDR` `cdr`
+        WHERE OCTET_LENGTH(`cdr`.`finalcalledpartynumber`) > 6
+        AND `cdr`.`datetimeconnect` BETWEEN `tablePBX`.`datetime` - 120 AND `tablePBX`.`datetime` + 120
+        AND `cdr`.`finalcalledpartynumber` = `tablePBX`.`CalledNumber` LIMIT 1) AS `cdrID`
+    FROM `cucmdb`.`tb_BillingFromPBX` `tablePBX`)) `pbx`
+  LEFT JOIN `cucmdb`.`tb_CDR` `cdr`
     ON (`pbx`.`cdrID` = `cdr`.`id`))
-  LEFT JOIN `cucmdb`.`tb_phonecode` `code`
+  LEFT JOIN `cucmdb`.`tb_phoneCode` `code`
     ON (`cdr`.`id_PhoneCode` = `code`.`id`));
 
 --
@@ -234,7 +218,7 @@ CREATE TABLE tb_units (
   id_parent int(11) UNSIGNED NOT NULL DEFAULT 0,
   Name varchar(255) DEFAULT NULL,
   Description varchar(255) DEFAULT NULL,
-  overdata varchar(255) DEFAULT 'NULL',
+  overdata varchar(255) DEFAULT NULL,
   PRIMARY KEY (id)
 )
 ENGINE = INNODB,
@@ -242,9 +226,9 @@ CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
 --
--- Create table `tb_systemuser`
+-- Create table `tb_systemUser`
 --
-CREATE TABLE tb_systemuser (
+CREATE TABLE tb_systemUser (
   id int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   login varchar(50) NOT NULL,
   password varchar(255) DEFAULT NULL,
@@ -253,8 +237,6 @@ CREATE TABLE tb_systemuser (
   PRIMARY KEY (id)
 )
 ENGINE = INNODB,
-AUTO_INCREMENT = 3,
-AVG_ROW_LENGTH = 8192,
 CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
@@ -271,15 +253,13 @@ CREATE TABLE tb_menu (
   PRIMARY KEY (id)
 )
 ENGINE = INNODB,
-AUTO_INCREMENT = 11,
-AVG_ROW_LENGTH = 1820,
 CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
 --
--- Create table `tb_cdrtemp`
+-- Create table `tb_CDRTemp`
 --
-CREATE TABLE tb_cdrtemp (
+CREATE TABLE tb_CDRTemp (
   pkid varchar(38) DEFAULT NULL,
   globalcallid_callmanagerid int(11) UNSIGNED DEFAULT NULL,
   globalcallid_callid int(11) UNSIGNED DEFAULT NULL,
@@ -305,15 +285,15 @@ CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
 --
--- Create index `IDX_tb_CDRTemp_filename` on table `tb_cdrtemp`
+-- Create index `IDX_tb_CDRTemp_filename` on table `tb_CDRTemp`
 --
-ALTER TABLE tb_cdrtemp
+ALTER TABLE tb_CDRTemp
 ADD INDEX IDX_tb_CDRTemp_filename (filename);
 
 --
--- Create table `tb_cdrimportstatistics`
+-- Create table `tb_cdrImportStatistics`
 --
-CREATE TABLE tb_cdrimportstatistics (
+CREATE TABLE tb_cdrImportStatistics (
   datetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP(),
   filename varchar(200) NOT NULL,
   countRows int(11) UNSIGNED NOT NULL DEFAULT 0,
@@ -325,9 +305,9 @@ CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
 --
--- Create table `tb_billingfrompbxtemp`
+-- Create table `tb_BillingFromPBXTemp`
 --
-CREATE TABLE tb_billingfrompbxtemp (
+CREATE TABLE tb_BillingFromPBXTemp (
   id int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   datetime int(11) UNSIGNED NOT NULL COMMENT 'Дата вызова',
   CalledNumber varchar(255) NOT NULL COMMENT 'Номер Вызываемого Абонента ',
@@ -342,27 +322,32 @@ ENGINE = INNODB,
 CHARACTER SET utf8,
 COLLATE utf8_general_ci;
 
--- 
--- Dumping data for table tb_users
 --
--- Table cucmdb.tb_users does not contain any data (it is empty)
+-- Create table `tb_BillingFromPBXError`
+--
+CREATE TABLE tb_BillingFromPBXError (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  message varchar(500) NOT NULL,
+  date datetime DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+)
+ENGINE = INNODB,
+CHARACTER SET utf8,
+COLLATE utf8_general_ci;
 
--- 
--- Dumping data for table tb_units
---
--- Table cucmdb.tb_units does not contain any data (it is empty)
 
--- 
--- Dumping data for table tb_systemuser
---
-INSERT INTO tb_systemuser VALUES
-(1, 'admin', '$2y$10$UG40YU50Q09wU20rSXJYUe7PzlY4avO69FiftWSKKdRlcL9TSQyMW', 'Локальный Адинистратор', '["admin"]'),
-(2, 'report', '$2y$10$UG40YU50Q09wU20rSXJYUe7PzlY4avO69FiftWSKKdRlcL9TSQyMW', 'Пользователь для Репортов', '["report"]');
+INSERT INTO cucmdb.tb_menu(id, id_parent, name, class, controller, action) VALUES
+(1, 0, 'Основное', 'fas fa-tachometer-alt', 'Index', 'index'),
+(2, 0, 'Отчеты', 'fas fa-scroll', '', ''),
+(3, 0, 'Настройки', 'fas fa-tools', 'Config', NULL),
+(4, 2, 'TimeLine', 'fas fa-receipt', 'Report', 'timeline'),
+(6, 3, 'Импорт PBX', NULL, 'Config', 'ImportForm'),
+(8, 3, 'Пользователи', 'fas fa-users', 'Config', 'users'),
+(9, 2, 'PBX Свод', 'fas fa-receipt', 'Report', 'PBX'),
+(10, 2, 'Поиск по номеру', 'fas fa-search', 'Report', 'FindCallNum');
 
--- 
--- Dumping data for table tb_phonecode
---
-INSERT INTO tb_phonecode VALUES
+
+INSERT INTO cucmdb.tb_phoneCode(id, name, code, symb) VALUES
 (2, 'Канада', 1, NULL),
 (3, 'Соединенные Штаты Америки', 1, NULL),
 (4, 'Россия', 7, NULL),
@@ -735,10 +720,10 @@ INSERT INTO tb_phonecode VALUES
 (567, 'АО «NURSAT»', 7762, NULL),
 (568, 'АО «Арна»', 7763, NULL),
 (569, 'АО «2Day Telecom»', 7764, NULL),
-(570, 'ТОО «КаР-Тел» (Beeline)', 7771, NULL),
+(570, 'ТОО «КаР-Тел»(Beeline)', 7771, NULL),
 (571, 'Кселл', 7775, NULL),
-(572, 'ТОО «КаР-Тел» (Beeline)', 7776, NULL),
-(573, 'ТОО «КаР-Тел» (Beeline)', 7777, NULL),
+(572, 'ТОО «КаР-Тел»(Beeline)', 7776, NULL),
+(573, 'ТОО «КаР-Тел»(Beeline)', 7777, NULL),
 (574, 'Кселл', 7778, NULL),
 (575, 'услуги интеллектуальных сетей связи', 78, NULL),
 (576, 'бесплатные звонки', 7800, NULL),
@@ -753,50 +738,7 @@ INSERT INTO tb_phonecode VALUES
 (585, 'универсальная персональная связь', 7808, NULL),
 (586, 'звонок за дополнительную плату', 7809, NULL);
 
--- 
--- Dumping data for table tb_menu
---
-INSERT INTO tb_menu VALUES
-(1, 0, 'Основное', 'fas fa-tachometer-alt', 'Index', 'index'),
-(2, 0, 'Отчеты', 'fas fa-scroll', '', ''),
-(3, 0, 'Настройки', 'fas fa-tools', 'Config', NULL),
-(4, 2, 'TimeLine', 'fas fa-receipt', 'Report', 'timeline'),
-(5, 3, 'Общее', NULL, NULL, NULL),
-(6, 3, 'Импорт PBX', NULL, 'Config', 'ImportForm'),
-(8, 3, 'Пользователи', 'fas fa-users', 'Config', 'users'),
-(9, 2, 'PBX Свод', 'fas fa-receipt', 'Report', 'PBX'),
-(10, 2, 'Поиск по номеру', 'fas fa-search', 'Report', 'FindCallNum');
 
--- 
--- Dumping data for table tb_cdrtemp
---
--- Table cucmdb.tb_cdrtemp does not contain any data (it is empty)
-
--- 
--- Dumping data for table tb_cdrimportstatistics
---
--- Table cucmdb.tb_cdrimportstatistics does not contain any data (it is empty)
-
--- 
--- Dumping data for table tb_cdr
---
--- Table cucmdb.tb_cdr does not contain any data (it is empty)
-
--- 
--- Dumping data for table tb_billingfrompbxtemp
---
--- Table cucmdb.tb_billingfrompbxtemp does not contain any data (it is empty)
-
--- 
--- Dumping data for table tb_billingfrompbx
---
--- Table cucmdb.tb_billingfrompbx does not contain any data (it is empty)
-
--- Restore previous SQL mode
--- 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-
--- 
--- Enable foreign keys
--- 
-/*!40014 SET FOREIGN_KEY_CHECKS = @OLD_FOREIGN_KEY_CHECKS */;
+INSERT INTO cucmdb.tb_systemUser(id, login, password, description, role) VALUES
+(2, 'admin', '$2y$10$UG40YU50Q09wU20rSXJYUe7PzlY4avO69FiftWSKKdRlcL9TSQyMW', NULL, '["admin","report"]'),
+(3, 'report', '$2y$10$UG40YU50Q09wU20rSXJYUe7PzlY4avO69FiftWSKKdRlcL9TSQyMW', NULL, '["report"]');

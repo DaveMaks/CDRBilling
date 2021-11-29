@@ -60,7 +60,8 @@ class viewPBX2CDR extends Model
         $this->setSource(TABLE_VIEW_PBX2CDR);
     }
 
-    public function getReportFromUnit($idUnit){
+    public function getReportFromUnit($idUnit)
+    {
 
     }
 
@@ -108,15 +109,13 @@ class viewPBX2CDR extends Model
         return $this->getOneCell($sql);
     }
 
-    public
-    function getSumDuration($dateUnixTimeA, $dateUnixTimeB)
+    public function getSumDuration($dateUnixTimeA, $dateUnixTimeB)
     {
         $sql = 'SELECT SUM(duration)as cnt FROM `' . TABLE_CDR_LOGS . '` WHERE (LENGTH(callingpartynumber)>4 OR LENGTH(finalcalledpartynumber)>4) AND datetimeconnect BETWEEN ' . $dateUnixTimeA . ' AND ' . $dateUnixTimeB . ' ';
         return $this->getOneCell($sql);
     }
 
-    private
-    function getOneCell($sql)
+    private function getOneCell($sql)
     {
         $cnt = $this->getReadConnection()->fetchOne($sql, Enum::FETCH_NUM);
         return (!empty($cnt) ? (int)$cnt[0] : null);
@@ -129,19 +128,32 @@ class viewPBX2CDR extends Model
         } elseif (is_numeric($units)) {
 
         } else return null;
+        //version 3
+        $sql = 'SELECT
+                  IFNULL(Report.tel,UUID()) grpID,
+                  GROUP_CONCAT(Report.fullName SEPARATOR \', \') AS fullName,
+                  Report.*
+                FROM (SELECT
+                    summaryCallUser.*,
+                    usr.*,
+                    unit.Name AS unitname,
+                    unit.Description AS unitdescription
+                  FROM (SELECT
+                      IF(LENGTH(callingpartynumber) = 4, callingpartynumber, originalcalledpartynumber) AS callingnumber,
+                      SUM(pbxduration) AS duration,
+                      SUM(cost) AS cost,
+                      COUNT(id) AS cnt
+                    FROM cucmdb.vv_pbx2cdr
+                    WHERE datetimeconnect BETWEEN ' . (int)$dateUnixTimeA . ' AND ' . (int)$dateUnixTimeB . '
+                    GROUP BY callingnumber) AS summaryCallUser
+                    LEFT JOIN tb_users AS usr
+                      ON summaryCallUser.callingnumber = usr.tel
+                    LEFT JOIN tb_units AS unit
+                      ON usr.id_unit = unit.id
+                  ORDER BY summaryCallUser.cost DESC) AS Report
+                GROUP BY grpID';
 
-        $sql = 'SELECT * FROM
-                (SELECT IF (LENGTH(callingpartynumber)=4,callingpartynumber,originalcalledpartynumber) AS callingnumber, 
-                SUM(pbxduration) as duration,
-                SUM(cost) as cost,
-                COUNT(id) as cnt                
-                FROM 
-                cucmdb.vv_pbx2cdr
-                WHERE datetimeconnect BETWEEN ' . (int)$dateUnixTimeA . ' AND ' . (int)$dateUnixTimeB . '
-                GROUP BY callingnumber) AS summaryCallUser
-                LEFT JOIN tb_users AS usr ON summaryCallUser.callingnumber=usr.tel
-                ORDER BY summaryCallUser.cost DESC ;';
-        return  $this->getReadConnection()->fetchAll($sql);
+        return $this->getReadConnection()->fetchAll($sql);
     }
 
     /**
@@ -163,7 +175,7 @@ class viewPBX2CDR extends Model
         if (!empty($searchArray['dst'])) {
             /*Запрос назанчения*/
             $dstWhere = $this->CreateWhereString('finalcalledpartynumber', $searchArray['dst']);
-            if (!empty($where))
+            if (!empty($dstWhere) && !empty($where))
                 $where .= ' ' . $searchArray['act'] . ' ';
             $where .= $dstWhere;
         }
@@ -211,15 +223,16 @@ class viewPBX2CDR extends Model
                   `origdevicename` AS `srcdevicename`,
                   `destdevicename` AS `dstdevicename`,
                   IF(ISNULL(`id_PhoneCode`),NULL,(SELECT name FROM tb_phoneCode WHERE id=`id_PhoneCode` LIMIT 1)) AS PhoneCodeName
-                FROM `' . TABLE_CDR_LOGS . '` WHERE datetimeconnect BETWEEN ' . $dateUnixTimeA . ' AND ' . $dateUnixTimeB . '
+                FROM `' . TABLE_CDR_LOGS . '` WHERE 
+                  datetimeconnect BETWEEN ' . $dateUnixTimeA . ' AND ' . $dateUnixTimeB . '
                   AND (' . $where . ') LIMIT ' . ((int)$limit + 1) . ') AS cdr
                   LEFT JOIN `' . TABLE_TBX . '` pbx ON 
                    `cdr`.`datetimeconnect` BETWEEN `pbx`.`datetime` - 120 AND `pbx`.`datetime` + 120
                         AND `cdr`.`called` = `pbx`.`CalledNumber`
                   LEFT JOIN `' . TABLE_USERS . '` calledusr ON cdr.called=calledusr.tel
                   LEFT JOIN `' . TABLE_USERS . '` callingusr ON cdr.calling =callingusr.tel';
-        //var_dump($sqlBase);
 
+        var_dump($sqlBase);
         /** @var $pdo Phalcon\Db\Adapter\Pdo\Mysql */
         $pdo = $this->getReadConnection();
         try {
@@ -238,8 +251,12 @@ class viewPBX2CDR extends Model
             $arrValue = $Value;
         else
             $arrValue[] = $Value;
+        foreach ($arrValue as $id => $row)
+            if (empty($row))
+                unset($arrValue[$id]);
         if (count($arrValue) == 0)
             return "";
+
         $pdo = $this->getReadConnection();
         /** @var $WhereValue [] список сформированных условий */
         $WhereValue = array();

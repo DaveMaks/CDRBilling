@@ -64,12 +64,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer">
+                        <div class="card-footer clearfix">
                             <button type="button" class="btn btn-info" id="btnCreateReport">Сформировать</button>
                             <button type="button" class="btn btn-success" id="btnCreateReportXLS"
                                     title="Выгрузить в xls"><i class="fas fa-file-excel fg-green"></i></button>
+                            <a href="javascript:showFailData();" class="btn btn-sm btn-secondary float-right">Без соответствия</a>
+                         <!--   <a href="javascript:getXlsFull();" class="btn btn-sm btn-secondary float-right">Полный отчет в XLS</a>-->
                         </div>
-
                     </div>
                 </form>
             </div>
@@ -111,7 +112,6 @@
                             </tr>
                             </thead>
                         </table>
-
                     </div>
                 </div>
             </div>
@@ -177,6 +177,28 @@
 </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="modalViewFailPBX" tabindex="-1" role="dialog"
+     aria-labelledby="XXXXX" aria-hidden="true">
+
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="">Записи билинга которых нет в системе</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+               Загрузка....
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <iframe id="frmDownloadFile" src="" style="display: none;"></iframe>
 <script>
 
@@ -207,6 +229,18 @@
                         '#DD9D6C',
                         '#61232C',
                         '#2B50B9',
+                        '#0f4155',
+                        '#C0DE58',
+                        '#5E1761',
+                        '#812068',
+                        '#A02A51',
+                        '#C03F34',
+                        '#DF8B3F',
+                        '#FFE64A',
+                        '#B6F760',
+                        '#75F176',
+                        '#88ECC2',
+                        '#9BDCE8',
                     ],
                 }
             ]
@@ -265,8 +299,15 @@
         /// TODO Добавить поле ID утройства откуда был выполнен вызов
         $("#tblCallingPBX").DataTable({
             "ajax": {
+                "processing": true,
                 url: "<?=$this->url->get('Report/GetPBXReportToUsers/')?>" + tel + "/" + dateRange.Start + "/" + dateRange.End,
-                dataSrc: ""
+                dataSrc: "data",
+                type: "GET",
+                /*data: {
+                    '0':tel,
+                    '1':dateRange.Start,
+                    '2':dateRange.End,
+                }*/
             },
             columns: [
                 {data: 'datetimeconnect'},
@@ -280,37 +321,27 @@
             columnDefs: [
                 {className: "small", "targets": [6]}
             ],
-            language: {
-                "processing": "Подождите...",
-                "search": "Поиск:",
-                "lengthMenu": "Показать _MENU_ записей",
-                "info": "Записи с _START_ до _END_ из _TOTAL_ записей",
-                "infoEmpty": "Записи с 0 до 0 из 0 записей",
-                "infoFiltered": "(отфильтровано из _MAX_ записей)",
-                "loadingRecords": "Загрузка записей...",
-                "zeroRecords": "Записи отсутствуют.",
-                "emptyTable": "В таблице отсутствуют данные",
-                "paginate": {
-                    "first": "Первая",
-                    "previous": "Предыдущая",
-                    "next": "Следующая",
-                    "last": "Последняя"
-                },
-                "aria": {
-                    "sortAscending": ": активировать для сортировки столбца по возрастанию",
-                    "sortDescending": ": активировать для сортировки столбца по убыванию"
-                },
-                "select": {
-                    "rows": {
-                        "_": "Выбрано записей: %d",
-                        "0": "Кликните по записи для выбора",
-                        "1": "Выбрана одна запись"
-                    }
-                }
-            }
+            language: DataTableLanguageRU
         });
     }
 
+    function showFailData(){
+        var dateRange = GetSelectData();
+        $('#modalViewFailPBX .modal-body').html('');
+        if (dateRange == null) {
+            return;
+        }
+        $('#modalViewFailPBX').modal('show');
+        $('#modalViewFailPBX .modal-body').load("<?=$this->url->get('Report/GetFailedPBXData/')?>" + dateRange.Start + "/" + dateRange.End + '/');
+
+    }
+    function getXlsFull(){
+        var dateRange = GetSelectData();
+        if (dateRange == null) {
+            return;
+        }
+        $("#frmDownloadFile").attr("src", "<?=$this->url->get('Report/GetFullPBXReportXLS/')?>" + dateRange.Start + "/" + dateRange.End + '/');
+    }
 
     $(document).ready(function () {
         $('#selectUnits').select2();
@@ -320,40 +351,7 @@
                 autoApply: true,
                 opens: "left",
                 showDropdowns: true,
-                locale: {
-                    "format": "DD.MM.YYYY",
-                    "separator": "-",
-                    "applyLabel": "Применить",
-                    "cancelLabel": "Отменить",
-                    "fromLabel": "с",
-                    "toLabel": "по",
-                    "customRangeLabel": "Другое",
-                    "weekLabel": "Мес",
-                    "daysOfWeek": [
-                        "Вс",
-                        "Пн",
-                        "Вт",
-                        "Ср",
-                        "Чт",
-                        "Пт",
-                        "Сб",
-                    ],
-                    "monthNames": [
-                        "Январь",
-                        "Февраль",
-                        "Март",
-                        "Апрель",
-                        "Май",
-                        "Июнь",
-                        "Июль",
-                        "Август",
-                        "Сентябрь",
-                        "Октябрь",
-                        "Ноябрь",
-                        "Декабрь"
-                    ],
-                    "firstDay": 1
-                },
+                locale: daterangepickerLocale,
             },
             function (start, end, label) {
             });
@@ -377,6 +375,8 @@
             }
             $("#frmDownloadFile").attr("src", "<?=$this->url->get('Report/GetPBXReportXLS/')?>" + dateRange.Start + "/" + dateRange.End + '/' + $('#AddNull').val());
         });
+
+
 
         // обработка табличного отчета
         $('#btnCreateReport').click(function () {

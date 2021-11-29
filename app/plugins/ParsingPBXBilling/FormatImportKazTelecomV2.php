@@ -44,9 +44,9 @@ class FormatImportKazTelecomV2 extends FormatImportAbstract
             case 1:
                 $ret = $this->ImportTab_1($param);
                 break;
-            case 2:
-                $ret = $this->ImportTab_2($param);
-                break;
+            /* case 2:
+                 $ret = $this->ImportTab_2($param);
+                 break;*/
         }
         return $ret;
     }
@@ -65,10 +65,13 @@ class FormatImportKazTelecomV2 extends FormatImportAbstract
      */
     private function ImportTab_0(&$param = array()): ?RowPBXModel
     {
-        if (empty($param[3]) || $param[3] == "НЕТ")
+        if (empty($param[3]) || $param[3] == "НЕТ") {
+            $this->SaveErrorLog('Строка не соответстует данным:' .
+                print_r($param, true));
             return null;
+        }
         //Проверяем формат полей на соответствие шаблону, в противном случае пропускаем
-        if ($this->isEmptyArray($param, [0, 1, 2, 4, 5, 6]) ||
+        /*if ($this->isEmptyArray($param, [0, 1, 2, 4, 5, 6]) ||
             !preg_match('/^\d{6,10}$/', $param[0]) || // первый стоолбец не номер тел. исх
             !$this->isDate($param[1]) ||
             !$this->isTime($param[2]) ||
@@ -77,14 +80,66 @@ class FormatImportKazTelecomV2 extends FormatImportAbstract
             !$this->isTime($param[6]) || //Длит.(мин:сек)
             !$this->isDecimal($param[7]) //Сумма (тг.)
         )
+            return null;*/
+
+        if ($this->isEmptyArray($param, [0, 1, 2, 4, 5, 6])) {
+            $this->SaveErrorLog('Пустые столбцы 0, 1, 2, 4, 5, 6:' .
+                print_r($param, true));
             return null;
+        }
+        if (!preg_match('/^\d{6,10}$/', $param[0])) {// первый стоолбец не номер тел. исх
+            $this->SaveErrorLog('Ошибка проверки поля тел. исх(0) (^\d{6,10}$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!$this->isDate($param[1])) {
+            $this->SaveErrorLog('Ошибка проверки поля Дата(1) (^\d{2}\.\d{2}\.\d{2}$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!$this->isTime($param[2])) {
+            $this->SaveErrorLog('Ошибка проверки поля Время вызова(2) (^\d{2}\:\d{2}\$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!preg_match('/^\d+$/', $param[4])) {//Телефон
+            $this->SaveErrorLog('Ошибка проверки поля Код(4) (^\d+\$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!preg_match('/^\d+$/', $param[5])) {//Телефон
+            $this->SaveErrorLog('Ошибка проверки поля Телефон(5) (^\d+\$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!$this->isTime($param[6])) {//Длит.(мин:сек)
+            $this->SaveErrorLog('Ошибка проверки поля Длительность(6) (^\d{2}:\d{2}$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!$this->isDecimal($param[7])) {//Сумма (тг.)
+            $this->SaveErrorLog('Ошибка проверки поля Сумма(7) (^\d*[\.,]?\d*$):' .
+                print_r($param, true));
+            return null;
+        }
+
         $pbx = new RowPBXModel();
         $pbx->datetime = $this->DateToTimestamp($param[1]) +
             $this->TimeToTimestamp($param[2]);
         $direction = array();// для сбора доп информации для дебага
-        $pbx->CalledNumber = '7' . $param[4] . $param[5];
+        /*  if (substr($param[4],1,2)=='10')
+              $pbx->CalledNumber = '7' . $param[4] . $param[5];
+          else
+              $pbx->CalledNumber = '7' . $param[4] . $param[5];*/
         $direction['id'] = $param[4];
         $direction['CityPBX'] = $param[3];
+
+        if (mb_substr($param[4], 0, 2) == '10') {
+            $param[4] = mb_substr($param[4], 2);
+            $pbx->CalledNumber = $param[4] . $param[5];
+            $direction['far_abroad'] = $param[4];
+        } else
+            $pbx->CalledNumber = '7' . $param[4] . $param[5];
         $pbx->duration = $this->TimeToTimestamp($param[6], 'M');
         $pbx->cost = (float)str_replace(',', '.', $param[7]);
         $pbx->tarif = round(($pbx->cost / $pbx->duration) * 60, 0);
@@ -107,15 +162,52 @@ class FormatImportKazTelecomV2 extends FormatImportAbstract
     private function ImportTab_1(&$param = array()): ?RowPBXModel
     {
         //Проверяем формат полей на соответствие шаблону, в противном случае пропускаем
-        if ($this->isEmptyArray($param, [0, 1, 2, 5, 6, 7]) ||
-            !preg_match('/^\d{6,10}$/', $param[0]) || // первый стоолбец не номер тел. исх
-            !$this->isDate($param[1]) ||
-            !$this->isTime($param[2]) ||
-            !preg_match('/^\d+$/', $param[5]) || //Телефон
-            !$this->isTime($param[6]) || //Длит.(мин:сек)
-            !$this->isDecimal($param[7]) //Сумма (тг.)
-        )
+        // if ($this->isEmptyArray($param, [0, 1, 2, 5, 6, 7]) ||
+        //     !preg_match('/^\d{6,10}$/', $param[0]) || // первый стоолбец не номер тел. исх
+        //     !$this->isDate($param[1]) ||
+        //     !$this->isTime($param[2]) ||
+        //     !preg_match('/^\d+$/', $param[5]) || //Телефон
+        //    !$this->isTime($param[6]) || //Длит.(мин:сек)
+        //    !$this->isDecimal($param[7]) //Сумма (тг.)
+        //)
+        //    return null;
+
+        if ($this->isEmptyArray($param, [0, 1, 2, 5, 6, 7])) {
+            $this->SaveErrorLog('Пустые столбцы 0, 1, 2, 5, 6, 7:' .
+                print_r($param, true));
             return null;
+        }
+        if (!preg_match('/^\d{6,10}$/', $param[0])) {// первый стоолбец не номер тел. исх
+            $this->SaveErrorLog('Ошибка проверки поля тел. исх(0) (^\d{6,10}$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!$this->isDate($param[1])) {
+            $this->SaveErrorLog('Ошибка проверки поля Дата(1) (^\d{2}\.\d{2}\.\d{2}$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!$this->isTime($param[2])) {
+            $this->SaveErrorLog('Ошибка проверки поля Время вызова(2) (^\d{2}\:\d{2}\$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!preg_match('/^\d+$/', $param[5])) {//Телефон
+            $this->SaveErrorLog('Ошибка проверки поля Телефон(5) (^\d+\$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!$this->isTime($param[6])) {//Длит.(мин:сек)
+            $this->SaveErrorLog('Ошибка проверки поля Длительность(6) (^\d{2}:\d{2}$):' .
+                print_r($param, true));
+            return null;
+        }
+        if (!$this->isDecimal($param[7])) {//Сумма (тг.)
+            $this->SaveErrorLog('Ошибка проверки поля Сумма(7) (^\d*[\.,]?\d*$):' .
+                print_r($param, true));
+            return null;
+        }
+
         $pbx = new RowPBXModel();
         $pbx->datetime = $this->DateToTimestamp($param[1]) +
             $this->TimeToTimestamp($param[2], 'H');
@@ -139,6 +231,7 @@ class FormatImportKazTelecomV2 extends FormatImportAbstract
      * 4 Кол-во/Продолж.
      * 5 Сумма (тг.)
      * @return RowPBXModel | null
+     * @deprecated Не используется, перенесена в отдльный файл
      */
     private function ImportTab_2(&$param = array()): ?RowPBXModel
     {
@@ -149,12 +242,13 @@ class FormatImportKazTelecomV2 extends FormatImportAbstract
             !preg_match('/^\d+$/', $param[3]) || //Телефон
             !$this->isTime($param[4]) || //Длит.(мин:сек)
             !$this->isDecimal($param[5]) //Сумма (тг.)
-        )
+        ) {
             return null;
+        }
         $pbx = new RowPBXModel();
-        $pbx->datetime = $this->TimeToTimestamp($param[1]);
+        $pbx->datetime = $this->FullDateToTimestamp($param[1]);
         $direction = array();// для сбора доп информации для дебага
-        $pbx->CalledNumber = $param[3];
+        $pbx->CalledNumber = '7' . $param[3];
         $direction['id'] = $param[0];
         $direction['CityPBX'] = 'ASTANA';
         $pbx->duration = $this->TimeToTimestamp($param[4], 'M');
@@ -166,14 +260,13 @@ class FormatImportKazTelecomV2 extends FormatImportAbstract
 
     protected function getIndexPage(): ?array
     {
-        return [0, 1, 2];
+        return [0, 1];
     }
 
     private function DateToTimestamp($val): int
     {
         if (is_int($val))
-            return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($val, 'UTC');
-
+            return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($val);
         $dateRow = explode('.', $val);
         return mktime(0, 0, 0, (int)$dateRow[1], (int)$dateRow[0], (int)('20' . $dateRow[2]));
     }
@@ -199,7 +292,8 @@ class FormatImportKazTelecomV2 extends FormatImportAbstract
             is_int($val));//вариант когда поле типизировано в Excel возвращает число
     }
 
-    private function isFullDateTimeStr($val): bool{
+    private function isFullDateTimeStr($val): bool
+    {
         return (preg_match('/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/', $val) == 1
             || is_float($val));  //вариант когда поле типизировано в Excel возвращает время ввиде числа с плавоющей точкой
     }
