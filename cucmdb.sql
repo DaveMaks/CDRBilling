@@ -135,7 +135,6 @@ ADD UNIQUE INDEX UK_tb_CDR (pkid, finalcalledpartynumber, duration, datetimeconn
 -- Create view `vv_pbx2cdr`
 --
 CREATE
-DEFINER = 'cucm'@'%'
 VIEW vv_pbx2cdr
 AS
 SELECT
