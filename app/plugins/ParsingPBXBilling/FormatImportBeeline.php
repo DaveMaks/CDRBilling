@@ -46,6 +46,9 @@ class FormatImportBeeline extends FormatImportAbstract
             return null;
         }
 
+        if (mb_substr($param[5], 0, 1) == '7') {
+            $param[5]='7'.$param[5];
+        }
 
         $param[2] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($param[2],'UTC');        
         //var_dump($param);
@@ -103,6 +106,9 @@ class FormatImportBeeline extends FormatImportAbstract
                 $direction['country'] = $vals[2];
             }
         }
+
+        
+
         $direction['CalledNumber'] = $param[4];
         // $param[4] = preg_replace('/^7{1}/', "", $param[4], 1);// убераем начальную 7 приводя к формату (код)(помер)
         $pbx = new RowPBXModel();
