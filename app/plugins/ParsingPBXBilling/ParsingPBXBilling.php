@@ -17,13 +17,15 @@ class ParsingPBXBilling
     const TypeKaztelecomV2 = 'Kaztelecom_Ver2';
     const TypeKaztelecomCity = 'Kaztelecom_City';
     const TypeBeeline = 'Beeline';
+    const TypeBeelineV2 = 'Beeline ver2';
 
     public static $listType = [
         self::TypeKcell,
         self::TypeKaztelecom,
         self::TypeKaztelecomV2,
         self::TypeKaztelecomCity,
-        self::TypeBeeline
+        self::TypeBeeline,
+        self::TypeBeelineV2
     ];
 
     private $filePath = null;
@@ -47,6 +49,9 @@ class ParsingPBXBilling
                 break;
             case self::TypeBeeline:
                 $this->dataclass = FormatImportBeeline::class;
+                break;
+            case self::TypeBeelineV2:
+                $this->dataclass = FormatImportBeelinev2::class;
                 break;
         }
     }
